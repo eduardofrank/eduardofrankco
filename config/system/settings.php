@@ -65,8 +65,6 @@ return [
     ],
     'GFX' => [
         'processor' => 'GraphicsMagick',
-        'processor_allowTemporaryMasksAsPng' => false,
-        'processor_colorspace' => 'RGB',
         'processor_effects' => false,
         'processor_enabled' => true,
         'processor_path' => '/usr/bin/',
@@ -128,7 +126,6 @@ return [
         'features' => [
             'security.backend.enforceContentSecurityPolicy' => true,
             'security.system.enforceAllowedFileExtensions' => true,
-            'security.usePasswordPolicyForFrontendUsers' => true,
         ],
         'sitename' => 'New TYPO3 site',
     ],

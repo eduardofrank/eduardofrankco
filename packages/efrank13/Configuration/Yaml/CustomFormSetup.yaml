@@ -1,0 +1,17 @@
+TYPO3:
+  CMS:
+    Form:
+      persistenceManager:
+        allowSaveToExtensionPaths: true
+        allowDeleteFromExtensionPaths: true
+        allowedExtensionPaths:
+          200: 'EXT:efrank13/Resources/Private/Forms/'
+      prototypes:
+        standard:
+          formElementsDefinition:
+            Form:
+              renderingOptions:
+                translation:
+                  translationFiles:
+                    10: 'EXT:form/Resources/Private/Language/locallang.xlf'
+                    20: 'EXT:efrank13/Resources/Private/Language/locallang.xlf'

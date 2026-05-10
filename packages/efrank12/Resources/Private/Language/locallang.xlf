@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0" xmlns:t3="http://typo3.org/schemas/xliff">
+    <file source-language="en" datatype="plaintext" original="EXT:efrank11/Resources/Private/Language/locallang.xlf" date="2022-03-03UTC11:24:540" product-name="efrank11">
+        <header/>
+        <body>
+             <trans-unit id="contacto.element.name.properties.label" resname="contacto.element.name.properties.label" approved="yes">
+                  <source>Name</source>
+             </trans-unit>
+             <trans-unit id="contacto.element.lastName.properties.label" resname="contacto.element.lastName.properties.label" approved="yes">
+                  <source>Last Name</source>
+             </trans-unit>
+             <trans-unit id="contacto.element.emailAddress.properties.label" resname="contacto.element.emailAddress.properties.label" approved="yes">
+                  <source>e-mail</source>
+             </trans-unit>
+             <trans-unit id="contacto.element.subject.properties.label" resname="contacto.element.subject.properties.label" approved="yes">
+                  <source>Subject</source>
+             </trans-unit>
+             <trans-unit id="contacto.element.message.properties.label" resname="contacto.element.message.properties.label" approved="yes">
+                  <source>Message</source>
+             </trans-unit>
+             <trans-unit id="element.contacto.renderingOptions.submitButtonLabel" resname="contacto.element.renderingOptions.submitButtonLabel" approved="yes">
+                  <source>Submit</source>
+             </trans-unit>
+             <trans-unit id="contacto.finisher.EmailToReceiver.subject" resname="contacto.finisher.EmailToReceiver.subject" approved="yes">
+                  <source>Message from the web</source>
+             </trans-unit>
+             <trans-unit id="contacto.element.mandatory.properties.text" resname="contacto.element.mandatory.properties.text" approved="yes">
+                  <source>* Mandatory field</source>
+             </trans-unit>
+        </body>
+    </file>
+</xliff>

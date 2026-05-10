@@ -6,7 +6,15 @@
       "Bash(git init *)",
       "Bash(git add *)",
       "Bash(git rm *)",
-      "Bash(git commit -m ' *)"
+      "Bash(git commit -m ' *)",
+      "Bash(ddev restart *)",
+      "Bash(ddev php *)",
+      "Bash(ddev exec *)",
+      "WebSearch",
+      "WebFetch(domain:packagist.org)",
+      "Bash(ddev composer *)",
+      "Bash(git clone *)",
+      "Bash(ddev mysql *)"
     ]
   }
 }

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 22.0.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 100 100" style="enable-background:new 0 0 100 100;" xml:space="preserve">
+<style type="text/css">
+	.st0{display:none;}
+	.st1{fill:none;stroke:#FFFFFF;stroke-miterlimit:10;}
+	.st2{fill:#006699;}
+	.st3{fill:#FFFFFF;}
+</style>
+<g id="template" class="st0">
+</g>
+<g id="diedro">
+	<line class="st1" x1="46" y1="87.9" x2="46" y2="71.3"/>
+	<path class="st2" d="M49.7,23.9c0,0,18.4-15.3,24.6-20.5S85.1,4.1,85.1,7v62L49.7,98.6l-35.2-30c0,0,0-53.6,0-59.6
+		c0-8.5,7.9-8.7,10.6-6C28,5.9,49.7,23.9,49.7,23.9z"/>
+</g>
+<g id="letras">
+	<g>
+		<polyline class="st3" points="79.3,23.3 79.3,8 53.9,29.3 53.9,87.2 63.6,79.2 63.6,55.2 73.3,46.7 73.3,36.1 63.6,44.6 
+			63.6,36.5 		"/>
+		<polyline class="st3" points="46,72.3 31.1,59.9 31.1,51 40.4,58.7 40.4,47.7 31.1,39.9 31.1,32.4 46,45 46,29.7 21.8,9 21.8,67 
+			46,87.9 		"/>
+	</g>
+</g>
+</svg>

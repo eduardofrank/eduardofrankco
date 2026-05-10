@@ -41,3 +41,5 @@ languages:
     languageId: 2
 rootPageId: 1
 websiteTitle: 'Eduardo Frank - TYPO3 Blog'
+dependencies:
+  - eduardo-frank/efrank13

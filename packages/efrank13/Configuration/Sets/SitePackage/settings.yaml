@@ -1,0 +1,44 @@
+plugin.bootstrap_package.settings.scss.primary: '#0d6296'
+plugin.bootstrap_package.settings.scss.secondary: '#90b4ce'
+plugin.bootstrap_package.settings.scss.gray-800: '#4b4b4b'
+plugin.bootstrap_package.settings.scss.gray-900: '#3b3b3b'
+plugin.bootstrap_package.settings.scss.h1-font-size: '$font-size-base * 1.75'
+plugin.bootstrap_package.settings.scss.h2-font-size: '$font-size-base * 1.5'
+plugin.bootstrap_package.settings.scss.h3-font-size: '$font-size-base * 1.25'
+plugin.bootstrap_package.settings.scss.h4-font-size: '$font-size-base * 1.15'
+plugin.bootstrap_package.settings.scss.h5-font-size: '$font-size-base * .95'
+plugin.bootstrap_package.settings.scss.h6-font-size: '$font-size-base * 0.8'
+plugin.bootstrap_package.settings.scss.headings-line-height: '.9'
+
+plugin.bootstrap_package.view.layoutRootPath: 'EXT:efrank13/Resources/Private/Layouts/'
+plugin.bootstrap_package.view.partialRootPath: 'EXT:efrank13/Resources/Private/Partials/'
+plugin.bootstrap_package.view.templateRootPath: 'EXT:efrank13/Resources/Private/Templates/'
+
+plugin.bootstrap_package_contentelements.view.layoutRootPath: 'EXT:efrank13/Resources/Private/Layouts/ContentElements/'
+plugin.bootstrap_package_contentelements.view.partialRootPath: 'EXT:efrank13/Resources/Private/Partials/ContentElements/'
+plugin.bootstrap_package_contentelements.view.templateRootPath: 'EXT:efrank13/Resources/Private/Templates/ContentElements/'
+
+page.logo.file: 'EXT:efrank13/Resources/Public/Images/logo.svg'
+page.logo.fileInverted: 'EXT:efrank13/Resources/Public/Images/logo-inverted.svg'
+page.logo.height: 100
+page.logo.width: 100
+page.logo.alt: 'efrank logo'
+page.logo.linktitle: 'Eduardo Frank'
+
+page.favicon.file: 'EXT:efrank13/Resources/Public/Icons/favicon.ico'
+
+page.fluidtemplate.layoutRootPath: 'EXT:efrank13/Resources/Private/Layouts/Page/'
+page.fluidtemplate.partialRootPath: 'EXT:efrank13/Resources/Private/Partials/Page/'
+page.fluidtemplate.templateRootPath: 'EXT:efrank13/Resources/Private/Templates/Page/'
+
+page.preloader.enable: 0
+page.preloader.logo.file: 'EXT:efrank13/Resources/Public/Images/logo.svg'
+page.preloader.logo.width: 100
+page.preloader.logo.height: 100
+page.preloader.backgroundColor: '#00F39D'
+
+page.meta.author: 'Eduardo Frank'
+page.theme.cookieconsent.type: 'info'
+page.theme.copyright.text: 'Hecho con <a href="http://www.typo3.org" rel="noopener" target="_blank">TYPO3</a> y <a href="https://www.bootstrap-package.com" rel="noopener" target="_blank">Bootstrap Package</a>.'
+
+config.headerComment: 'Integration by Eduardo Frank, based on the TYPO3 Bootstrap Package by Benjamin Kott - https://www.bootstrap-package.com/'
