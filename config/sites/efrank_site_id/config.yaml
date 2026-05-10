@@ -1,0 +1,43 @@
+base: 'https://v12-eduardofrank.ddev.site'
+errorHandling:
+  -
+    errorCode: 404
+    errorHandler: Page
+    errorContentSource: 't3://page?uid=12'
+languages:
+  -
+    title: Español
+    enabled: true
+    locale: es_ES.utf8
+    hreflang: es_ES
+    base: /
+    websiteTitle: ''
+    navigationTitle: Español
+    flag: es
+    languageId: 0
+  -
+    title: Deutsch
+    enabled: true
+    locale: de_DE.utf8
+    hreflang: de_DE
+    base: /de/
+    websiteTitle: ''
+    navigationTitle: Deutsch
+    fallbackType: strict
+    fallbacks: ''
+    flag: de
+    languageId: 1
+  -
+    title: English
+    enabled: true
+    locale: en_US.utf8
+    hreflang: en_US
+    base: /en/
+    websiteTitle: ''
+    navigationTitle: English
+    fallbackType: strict
+    fallbacks: ''
+    flag: en-us-gb
+    languageId: 2
+rootPageId: 1
+websiteTitle: 'Eduardo Frank - TYPO3 Blog'
