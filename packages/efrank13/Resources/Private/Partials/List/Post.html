@@ -6,9 +6,6 @@
         </blogvh:link.post>
     </f:if>
     <h4 class="postlist__posttitle" itemprop="name"><blogvh:link.post post="{post}" /></h4>
-    <div class="header-wrapper">
-        <f:render partial="Meta/ListHeader" arguments="{_all}" />
-    </div>
     <f:if condition="{post.abstract}">
         <f:then>
             <p class="postlist__postdescription" itemprop="description">{post.abstract}</p>

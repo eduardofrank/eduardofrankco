@@ -97,10 +97,12 @@ plugin.tx_blog.settings.meta.postheader.elements.categories.enable = 1
 plugin.tx_blog.settings.meta.postheader.elements.tags.enable = 1
 plugin.tx_blog.settings.meta.postfooter.elements.authors.enable = 1
 plugin.tx_blog.settings.meta.postfooter.elements.published.enable = 1
-plugin.tx_blog.settings.meta.listfooter.enable = 1
-plugin.tx_blog.settings.meta.listheader.modifier = simple
 plugin.tx_blog.settings.meta.listheader.enable = 1
-plugin.tx_blog.settings.meta.listfooter.elements.published.enable = 1
+plugin.tx_blog.settings.meta.listheader.modifier = simple
+plugin.tx_blog.settings.meta.listheader.elements.published.enable = 1
+plugin.tx_blog.settings.meta.listfooter.enable = 1
+plugin.tx_blog.settings.meta.listfooter.modifier = simple
 plugin.tx_blog.settings.meta.listfooter.elements.categories.enable = 1
+plugin.tx_blog.settings.meta.listfooter.elements.tags.enable = 1
 
 plugin.tx_blog.settings.notifications.CommentAddedNotification.admin.email = efrank@eduardofrank.co

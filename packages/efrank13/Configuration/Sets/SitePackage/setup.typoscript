@@ -18,6 +18,19 @@ config.admPanel = 0
 config.contentObjectExceptionHandler = 0
 config.linkVars = L(1-2)
 
+#### BLOG VIEW OVERRIDES ####
+plugin.tx_blog.view.partialRootPaths.10 = EXT:efrank13/Resources/Private/Partials/
+
+plugin.tx_blog.settings.meta.listheader.enable = 1
+plugin.tx_blog.settings.meta.listheader.modifier = simple
+plugin.tx_blog.settings.meta.listheader.elements.published.enable = 1
+plugin.tx_blog.settings.meta.listfooter.enable = 1
+plugin.tx_blog.settings.meta.listfooter.modifier = simple
+plugin.tx_blog.settings.meta.listfooter.elements.categories.enable = 1
+plugin.tx_blog.settings.meta.listfooter.elements.tags.enable = 1
+plugin.tx_blog.settings.meta.listfooter.elements.published.enable = 0
+plugin.tx_blog.settings.meta.listfooter.elements.authors.enable = 0
+
 #### FORM CONFIGURATION ####
 plugin.tx_form.settings.yamlConfigurations.200 = EXT:efrank13/Configuration/Yaml/CustomFormSetup.yaml
 module.tx_form.settings.yamlConfigurations.200 = EXT:efrank13/Configuration/Yaml/CustomFormSetup.yaml
