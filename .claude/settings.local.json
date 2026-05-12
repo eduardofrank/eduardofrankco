@@ -14,7 +14,22 @@
       "WebFetch(domain:packagist.org)",
       "Bash(ddev composer *)",
       "Bash(git clone *)",
-      "Bash(ddev mysql *)"
+      "Bash(ddev mysql *)",
+      "Bash(git commit *)",
+      "Bash(curl -sk \"https://v12-eduardofrank.ddev.site/\")",
+      "WebFetch(domain:eduardofrank.co)",
+      "Bash(awk '/<article class=\"postlist__post\"/{found=1} found{print; if\\(/<\\\\/article>/\\) {found=0; exit}}')",
+      "Bash(curl -sk \"https://v12-eduardofrank.ddev.site/?type=99\")",
+      "Bash(curl -sk \"https://v12-eduardofrank.ddev.site/typo3/module/typoscript/active?id=1\")",
+      "Bash(awk '/<div class=\"footer-wrapper\">/{found=1} found{print; if\\(/<\\\\/div>/ && ++count==2\\) {found=0; exit}}')",
+      "Bash(grep -o '\\\\.\\\\\\(postlist[^{,\\\\s]*\\\\|postmetagroup[^{,\\\\s]*\\\\\\)' /Users/efrank/ddevspace/v12_eduardofrank/vendor/t3g/blog/Resources/Public/Css/frontend.min.css)",
+      "Bash(ssh-keygen -R github.com)",
+      "Bash(ssh-keyscan -t ed25519 github.com)",
+      "Bash(git -C packages/efrank13 status)",
+      "Bash(git -C packages/efrank13 log --oneline -3)",
+      "Bash(git -C packages/efrank13 add -A)",
+      "Bash(git -C packages/efrank13 diff --cached --stat)",
+      "Bash(git checkout *)"
     ]
   }
 }

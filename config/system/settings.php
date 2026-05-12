@@ -44,9 +44,17 @@ return [
             'automaticInstallation' => '1',
             'offlineMode' => '0',
         ],
+        'redirects' => [
+            'showCheckIntegrityInfoInReports' => '1',
+            'showCheckIntegrityInfoInReportsSeconds' => '86400',
+        ],
         'rte_ckeditor_image' => [
             'allowSvgImages' => '0',
+            'enableAutomaticPreviewRenderer' => '1',
+            'enableAutomaticRteSoftref' => '1',
+            'excludedTables' => '',
             'fetchExternalImages' => '1',
+            'includedTablesOnly' => '',
         ],
         'scheduler' => [
             'maxLifetime' => '1440',
