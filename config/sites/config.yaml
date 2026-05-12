@@ -62,5 +62,7 @@ routes:
     type: uri
     source: 'http://eduardofrank.co/de/?type=1533906435'
 websiteTitle: 'Eduardo Frank - TYPO3 Blog'
+dependencies:
+  - eduardo-frank/efrank13
 imports:
    - { resource: "EXT:blog/Configuration/Routes/Default.yaml" }
