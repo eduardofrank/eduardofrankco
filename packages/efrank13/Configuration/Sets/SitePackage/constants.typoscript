@@ -57,10 +57,10 @@ plugin.bootstrap_package_contentelements {
 ### SCSS ###
 ################
 plugin.bootstrap_package.settings.scss {
-    primary = #0d6296
-    secondary = #90b4ce
-    gray-800 = #4b4b4b
-    gray-900 = #3b3b3b
+    primary = #5bb8f0
+    secondary = #3d8abf
+    gray-800 = #aaaaaa
+    gray-900 = #dcdcdc
     h1-font-size = $font-size-base * 1.75
     h2-font-size = $font-size-base * 1.5
     h3-font-size = $font-size-base * 1.25

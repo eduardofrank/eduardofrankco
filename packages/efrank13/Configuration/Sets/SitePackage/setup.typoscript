@@ -17,9 +17,11 @@ page {
 config.admPanel = 0
 config.contentObjectExceptionHandler = 0
 config.linkVars = L(1-2)
+config.htmlTag_setParams = data-bs-theme="dark"
 
 #### BLOG VIEW OVERRIDES ####
 plugin.tx_blog.view.partialRootPaths.10 = EXT:efrank13/Resources/Private/Partials/
+plugin.tx_blog.view.templateRootPaths.10 = EXT:efrank13/Resources/Private/Templates/
 
 plugin.tx_blog.settings.meta.listheader.enable = 1
 plugin.tx_blog.settings.meta.listheader.modifier = simple
@@ -46,7 +48,7 @@ page {
 <link rel="icon" type="image/png" sizes="32x32" href="{f:uri.resource(path: 'Icons/favicon-32x32.png', extensionName: 'efrank13')}">
 <link rel="icon" type="image/png" sizes="16x16" href="{f:uri.resource(path: 'Icons/favicon-16x16.png', extensionName: 'efrank13')}">
 <meta name="msapplication-TileColor" content="#da532c">
-<meta name="theme-color" content="#ffffff">
+<meta name="theme-color" content="#161616">
             )
         }
     }
