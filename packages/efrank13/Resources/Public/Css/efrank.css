@@ -178,19 +178,31 @@ pre code {
 
 code {
     display: inline;
-    min-width: 100%;
     font-size: 85%;
     color: var(--tx);
     word-wrap: break-word;
-    padding: .08rem 0.05rem;
+    padding: .2rem 0.4rem;
     border: 1px solid var(--code-bd);
     border-radius: var(--radius);
     background-color: var(--code-bg);
 }
 
+h1 code, h2 code, h3 code, h4 code, h5 code, h6 code {
+    all: unset;
+    font: inherit;
+    color: inherit;
+}
+
 code > span.md-expand.md-plain {
     font-family: var(--fm);
     font-size: 1em;
+}
+
+code span {
+    font-family: var(--fm);
+    font-size: 1em;
+    background-color: var(--code-bg);
+    color: var(--tx);
 }
 
 code a, pre a {
@@ -210,6 +222,12 @@ pre[style] {
 .blogcontainer-main {
     min-width: 0;
     overflow: hidden;
+}
+
+/* Override RTE inline color styles that clash with dark theme */
+.frame-inner span[style*="color:#"],
+.frame-inner span[style*="color: #"] {
+    color: var(--tx) !important;
 }
 
 /* ===========================
@@ -337,6 +355,11 @@ p a span {
     padding: 0;
     white-space: normal;
     width: 100%;
+}
+
+.postmetagroup__content {
+    white-space: initial;
+    padding-left: 10px;
 }
 
 time {
