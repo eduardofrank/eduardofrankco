@@ -135,6 +135,6 @@ return [
             'security.backend.enforceContentSecurityPolicy' => true,
             'security.system.enforceAllowedFileExtensions' => true,
         ],
-        'sitename' => 'New TYPO3 site',
+        'sitename' => 'Eduardo Frank - TYPO3 Blog',
     ],
 ];
