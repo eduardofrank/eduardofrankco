@@ -105,4 +105,5 @@ plugin.tx_blog.settings.meta.listfooter.modifier = simple
 plugin.tx_blog.settings.meta.listfooter.elements.categories.enable = 1
 plugin.tx_blog.settings.meta.listfooter.elements.tags.enable = 1
 
+plugin.tx_blog.settings.relatedPosts.limit = 0
 plugin.tx_blog.settings.notifications.CommentAddedNotification.admin.email = efrank@eduardofrank.co

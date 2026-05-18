@@ -34,7 +34,6 @@ plugin.tx_blog.settings.meta.listfooter.elements.published.enable = 0
 plugin.tx_blog.settings.meta.listfooter.elements.authors.enable = 0
 
 #### SIDEBAR WIDGET OVERRIDES ####
-plugin.tx_blog.settings.sidebarWidgets.10 = tt_content.list.20.blog_relatedposts
 plugin.tx_blog.settings.sidebarWidgets.40 >
 plugin.tx_blog.settings.sidebarWidgets.50 >
 plugin.tx_blog.settings.sidebarWidgets.60 >
