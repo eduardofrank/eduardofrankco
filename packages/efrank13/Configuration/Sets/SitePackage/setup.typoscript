@@ -77,6 +77,20 @@ plugin.tx_bootstrap_package {
     }
 }
 
+#### BLOG LABEL TRANSLATIONS ####
+plugin.tx_blog._LOCAL_LANG {
+    es {
+        headline.recentposts = Publicaciones recientes
+        headline.categories = Categorías
+        headline.tags = Etiquetas
+    }
+    de {
+        headline.recentposts = Neueste Beiträge
+        headline.categories = Kategorien
+        headline.tags = Schlagwörter
+    }
+}
+
 #### BREADCRUMB: HIDE ROOT PAGE ####
 page {
     10 = FLUIDTEMPLATE

@@ -363,6 +363,10 @@ p a span {
     padding-left: 10px;
 }
 
+.postlist.postlist--bytag .footer-wrapper{
+    padding-left: 0;
+}
+
 time {
     font-size: 0.75rem;
     color: var(--tx-muted);
@@ -484,4 +488,8 @@ nav.blogpagination {
 
 .footer-section-meta a:not(.btn):hover {
     color: var(--link-hover);
+}
+
+.footer-copyright p {
+    color: var(--tx-dark);
 }

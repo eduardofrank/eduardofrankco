@@ -23,8 +23,8 @@ languages:
     base: /de/
     websiteTitle: ''
     navigationTitle: Deutsch
-    fallbackType: strict
-    fallbacks: ''
+    fallbackType: fallback
+    fallbacks: '0'
     flag: de
     languageId: 1
   -
@@ -35,8 +35,8 @@ languages:
     base: /en/
     websiteTitle: ''
     navigationTitle: English
-    fallbackType: strict
-    fallbacks: ''
+    fallbackType: fallback
+    fallbacks: '0'
     flag: en-us-gb
     languageId: 2
 rootPageId: 1
