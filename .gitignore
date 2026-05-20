@@ -15,4 +15,5 @@
 .ddev/.importdb*
 .ddev/xhprof/
 node_modules/
+config/system/settings.php
 .DS_Store

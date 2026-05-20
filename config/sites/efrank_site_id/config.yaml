@@ -1,4 +1,4 @@
-base: 'https://v12-eduardofrank.ddev.site'
+base: '%env(TYPO3_BASE_URL)%'
 errorHandling:
   -
     errorCode: 404
