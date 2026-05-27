@@ -12,6 +12,12 @@
             <trans-unit id="backend_layout.column.normal">
                 <source>Normal</source>
             </trans-unit>
+            <trans-unit id="widget.personalNotepad.title">
+                <source>Personal Notepad</source>
+            </trans-unit>
+            <trans-unit id="widget.personalNotepad.description">
+                <source>Shows your personal sys_note records on the dashboard</source>
+            </trans-unit>
         </body>
     </file>
 </xliff>

@@ -1,0 +1,44 @@
+.personal-notepad {
+    padding: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.personal-notepad-item {
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 0.25rem;
+}
+
+.personal-notepad-item.info { background-color: rgba(var(--bs-info-rgb), 0.08); }
+.personal-notepad-item.warning { background-color: rgba(var(--bs-warning-rgb), 0.08); }
+.personal-notepad-item.success { background-color: rgba(var(--bs-success-rgb), 0.08); }
+.personal-notepad-item.notice { background-color: rgba(var(--bs-secondary-rgb), 0.08); }
+
+.personal-notepad-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.personal-notepad-item-subject {
+    font-size: 0.9rem;
+}
+
+.personal-notepad-item-meta {
+    font-size: 0.75rem;
+    color: var(--bs-secondary);
+    white-space: nowrap;
+}
+
+.personal-notepad-item-message {
+    font-size: 0.85rem;
+    line-height: 1.5;
+    color: var(--bs-body-color);
+}
+
+.personal-notepad-divider {
+    margin: 0.5rem 0;
+    opacity: 0.15;
+}
