@@ -10,6 +10,8 @@ page {
     }
 
     includeJSFooter {
+        mermaid = https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js
+        mermaid.external = 1
         efrank13_scripts = EXT:efrank13/Resources/Public/JavaScript/main.js
     }
 }
