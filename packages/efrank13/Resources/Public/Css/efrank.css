@@ -283,6 +283,10 @@ p a span {
     display: none;
 }
 
+.blogarchiveheader__title {
+    display: none;
+}
+
 .postlist__post {
     display: flex;
     flex-direction: column;
