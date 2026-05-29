@@ -1,4 +1,4 @@
-name: v12-eduardofrank
+name: eduardofrank
 type: typo3
 docroot: public
 php_version: "8.3"
@@ -12,7 +12,7 @@ database:
 use_dns_when_possible: true
 composer_version: "2"
 web_environment:
-    - TYPO3_BASE_URL=https://v12-eduardofrank.ddev.site
+    - TYPO3_BASE_URL=https://eduardofrank.ddev.site
 corepack_enable: false
 
 # Key features of DDEV's config.yaml:
