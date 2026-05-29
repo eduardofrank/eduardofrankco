@@ -262,6 +262,13 @@ p a span {
 }
 
 /* ===========================
+   Intro
+   =========================== */
+div #c1.frame.frame-default {
+    padding-bottom: 0;
+}
+
+/* ===========================
    Breadcrumb
    =========================== */
 #p16 .breadcrumb-section .breadcrumb {
