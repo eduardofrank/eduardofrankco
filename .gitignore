@@ -7,7 +7,6 @@
 /public/fileadmin/
 *.sql.gz
 *.sql
-.ddev/config.yaml
 .ddev/.homeadditions/
 .ddev/.sshimageBuild/
 .ddev/mutagen/
