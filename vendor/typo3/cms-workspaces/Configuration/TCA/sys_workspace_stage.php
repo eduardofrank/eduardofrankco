@@ -1,0 +1,106 @@
+<?php
+
+return [
+    'ctrl' => [
+        'label' => 'title',
+        'tstamp' => 'tstamp',
+        'sortby' => 'sorting',
+        'title' => 'workspaces.db:sys_workspace_stage',
+        'adminOnly' => true,
+        'rootLevel' => 1,
+        'hideTable' => true,
+        'delete' => 'deleted',
+        'typeicon_classes' => [
+            'default' => 'mimetypes-x-sys_workspace',
+        ],
+        'versioningWS_alwaysAllowLiveEdit' => true,
+    ],
+    'columns' => [
+        'title' => [
+            'label' => 'core.general:LGL.title',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'max' => 30,
+                'required' => true,
+                'eval' => 'trim',
+            ],
+        ],
+        'responsible_persons' => [
+            'label' => 'workspaces.db:sys_workspace_stage.responsible_persons',
+            'config' => [
+                'type' => 'group',
+                'allowed' => 'be_users,be_groups',
+                'prepend_tname' => true,
+                'size' => 3,
+                'maxitems' => 100,
+                'autoSizeMax' => 20,
+            ],
+        ],
+        'default_mailcomment' => [
+            'label' => 'workspaces.db:sys_workspace_stage.default_mailcomment',
+            'config' => [
+                'type' => 'text',
+                'rows' => 5,
+                'cols' => 30,
+            ],
+        ],
+        'parentid' => [
+            'label' => 'workspaces.db:sys_workspace_stage.parentid',
+            'config' => [
+                'type' => 'passthrough',
+            ],
+        ],
+        'notification_defaults' => [
+            'label' => 'workspaces.db:sys_workspace_stage.notification_defaults',
+            'config' => [
+                'type' => 'group',
+                'allowed' => 'be_users,be_groups',
+                'prepend_tname' => true,
+                'size' => 3,
+                'maxitems' => 100,
+                'autoSizeMax' => 20,
+            ],
+        ],
+        'allow_notificaton_settings' => [
+            'label' => 'workspaces.db:sys_workspace.settingsDialog',
+            'config' => [
+                'type' => 'check',
+                'items' => [
+                    ['label' => 'workspaces.db:sys_workspace.settingsDialog.showDialog'],
+                    ['label' => 'workspaces.db:sys_workspace.settingsDialog.changeablePreselection'],
+                ],
+                'default' => 3,
+                'cols' => 1,
+            ],
+        ],
+        'notification_preselection' => [
+            'label' => 'workspaces.db:sys_workspace.preselection',
+            'config' => [
+                'type' => 'check',
+                'items' => [
+                    ['label' => 'workspaces.db:sys_workspace.preselection.owners'],
+                    ['label' => 'workspaces.db:sys_workspace.preselection.members'],
+                    ['label' => 'workspaces.db:sys_workspace.preselection.editors'],
+                    ['label' => 'workspaces.db:sys_workspace.preselection.responsiblePersons'],
+                ],
+                'default' => 8,
+                'cols' => 1,
+            ],
+        ],
+    ],
+    'palettes' => [
+        'stage' => [
+            'showitem' => 'allow_notificaton_settings, notification_preselection,',
+        ],
+    ],
+    'types' => [
+        '0' => ['showitem' => '
+            --div--;core.form.tabs:general,
+                title,responsible_persons,
+            --div--;workspaces.db:tabs.notification_settings,
+                --palette--;;stage, notification_defaults, default_mailcomment,
+            --div--;core.form.tabs:extended,
+        '],
+    ],
+];

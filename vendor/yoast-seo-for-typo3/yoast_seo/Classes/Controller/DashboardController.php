@@ -1,0 +1,36 @@
+<?php
+
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace YoastSeoForTypo3\YoastSeo\Controller;
+
+use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\Domain\ConsumableString;
+
+class DashboardController extends AbstractBackendController
+{
+    public function indexAction(): ResponseInterface
+    {
+        return $this->returnResponse(
+            'Dashboard/Index',
+            ['nonce' => $this->getNonce()]
+        );
+    }
+
+    protected function getNonce(): string
+    {
+        /** @var ConsumableString|null $nonceAttribute */
+        $nonceAttribute = $this->request->getAttribute('nonce');
+        if ($nonceAttribute instanceof ConsumableString) {
+            return $nonceAttribute->consume();
+        }
+        return '';
+    }
+}

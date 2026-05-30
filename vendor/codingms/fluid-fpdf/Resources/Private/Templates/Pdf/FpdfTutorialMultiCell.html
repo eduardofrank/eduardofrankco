@@ -1,0 +1,20 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en"
+	  xmlns:f="http://typo3.org/ns/fluid/ViewHelpers"
+	  xmlns:fpdf="http://typo3.org/ns/CodingMs/FluidFpdf/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+<fpdf:pdf>
+	<fpdf:addPage>
+		<fpdf:setFont family="Arial" style="B" size="16" />
+
+		<fpdf:variable.set name="multiLineText">Hello
+World!
+Variable line breaks...</fpdf:variable.set>
+
+		<fpdf:multiCell width="40" height="5" text="Hello \nWorld!\nInline line breaks..." />
+
+		<fpdf:ln height="20" />
+
+		<fpdf:multiCell width="40" height="5" text="{multiLineText}" />
+	</fpdf:addPage>
+</fpdf:pdf>
+</html>

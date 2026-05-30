@@ -1,0 +1,13 @@
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+import p from"@typo3/core/event/regular-event.js";import y from"@typo3/core/document-service.js";import h from"@typo3/backend/ajax-data-handler.js";import w from"@typo3/backend/modal.js";import b from"@typo3/backend/notification.js";import C from"@typo3/backend/action-button/immediate-action.js";import g from"@typo3/backend/viewport.js";import e from"~labels/backend.wizards.move_content_elements";import f from"~labels/core.misc";class E{constructor(){this.initialize()}async initialize(){await y.ready(),this.registerEvents(document.querySelector(".element-browser-body"))}registerEvents(l){new p("change",async r=>{const o=document.querySelector("#elementRecordTitle").value,n=new URL(window.location.href).searchParams.get("uid"),i=document.querySelector("h2");if(i){const t=[o,Number(n)];i.innerText=r.target.checked?e.get("headline.copy",t):e.get("headline.move",t)}const a=r.target.checked?f.get("copyElementToHere"):f.get("moveElementToHere");document.querySelectorAll('[data-action="paste"]').forEach(t=>{t.querySelector("span.t3js-button-label").textContent=a})}).delegateTo(l,"#makeCopy"),new p("click",async(r,o)=>{const m=document.querySelector("#makeCopy"),n=document.querySelector("#elementRecordTitle").value,i=document.querySelector("#pageRecordTitle").value,a=document.querySelector("#pageUid").value,t=new URL(window.location.href),d=t.searchParams.get("uid"),c=new URL(t.searchParams.get("returnUrl"),window.origin),s=m.checked,v=s?"copy":"move",u={cmd:{tt_content:{[d]:{[v]:o.dataset.position}}}};o.dataset.colpos!==void 0&&(u.data={tt_content:{[d]:{colPos:o.dataset.colpos}}}),h.process(u).then(()=>{w.dismiss(),b.success(s?e.get("moveElement.notification.elementCopied.title"):e.get("moveElement.notification.elementMoved.title"),s?e.get("moveElement.notification.elementCopied.message",[n]):e.get("moveElement.notification.elementMoved.message",[n]),10,[{label:e.get("moveElement.notification.elementPasted.action.dismiss")},{label:e.get("moveElement.notification.elementPasted.action.open",[i]),action:new C(()=>{c.searchParams.set("id",a),g.ContentContainer.setUrl(c)})}]),g.ContentContainer.setUrl(c)})}).delegateTo(l,'[data-action="paste"]')}}export{E as MoveContentElement};

@@ -1,0 +1,105 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  YoastSeoForTypo3\YoastSeo\:
+    resource: '../Classes/*'
+
+  YoastSeoForTypo3\YoastSeo\Controller\AjaxController:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Service\Overview\OverviewService:
+    arguments:
+      $filters:
+        cornerstone: '@YoastSeoForTypo3\YoastSeo\DataProviders\CornerstoneOverviewDataProvider'
+        withoutDescription: '@YoastSeoForTypo3\YoastSeo\DataProviders\PagesWithoutDescriptionOverviewDataProvider'
+        orphaned: '@YoastSeoForTypo3\YoastSeo\DataProviders\OrphanedContentDataProvider'
+
+  YoastSeoForTypo3\YoastSeo\Service\Crawler\CrawlerService:
+    public: true
+    arguments:
+      $cache: '@cache.pages'
+
+  YoastSeoForTypo3\YoastSeo\StructuredData\StructuredDataProviderManager:
+    public: true
+    arguments:
+      $pageCache: '@cache.pages'
+
+  YoastSeoForTypo3\YoastSeo\PageTitle\RecordPageTitleProvider:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\MetaTag\RecordMetaTagGenerator:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\MetaTag\AdvancedRobots\AdvancedRobotsGenerator:
+    public: true
+
+  YoastSeoForTypo3\YoastSeo\Widgets\Provider\OrphanedContentDataProvider:
+    arguments:
+      $excludedDoktypes: [ 3, 4, 6, 7, 199, 254, 255 ]
+      $limit: 8
+
+  YoastSeoForTypo3\YoastSeo\PageParser\BodyParser:
+    tags: [ 'frontend_request.page_parser' ]
+
+  YoastSeoForTypo3\YoastSeo\PageParser\SlugParser:
+    tags: [ 'frontend_request.page_parser' ]
+
+  YoastSeoForTypo3\YoastSeo\PageParser\TitleConfigurationParser:
+    tags: [ 'frontend_request.page_parser' ]
+
+  ## Deprecated configuration for FormEngine nodes, these will be auto discovered if TYPO3 v12 is dropped
+  YoastSeoForTypo3\YoastSeo\Form\Element\FocusKeywordAnalysis:
+    public: true
+  YoastSeoForTypo3\YoastSeo\Form\Element\Insights:
+    public: true
+  YoastSeoForTypo3\YoastSeo\Form\Element\InternalLinkingSuggestion:
+    public: true
+  YoastSeoForTypo3\YoastSeo\Form\Element\ReadabilityAnalysis:
+    public: true
+  YoastSeoForTypo3\YoastSeo\Form\Element\SnippetPreview:
+    public: true
+
+  ## Deprecated configuration for event listeners, these can be configured with the AsEventListener attribute if TYPO3 v12 is dropped
+  YoastSeoForTypo3\YoastSeo\EventListener\TcaBuiltListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\Builder\TcaBuilder'
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/tca-built'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\TableDefinitionsListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\Builder\SchemaBuilder'
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/table-definitions'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\RecordCanonicalListener:
+    arguments:
+      - '@YoastSeoForTypo3\YoastSeo\Record\RecordService'
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/record-canonical'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\ModifyPageLayoutContentListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/backend/modify-page-module-content'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\PageCacheListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/page-cache-listener'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\FrontendRequestListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/frontend-request-listener'
+
+  YoastSeoForTypo3\YoastSeo\EventListener\PageCacheIdentifierListener:
+    tags:
+      - name: event.listener
+        identifier: 'yoast-seo/page-cache-identifier'

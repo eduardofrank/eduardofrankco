@@ -1,0 +1,318 @@
+{
+    "title": "TYPO3 Fluid-FPDF - PDF by coding.ms",
+    "subtitle": "This extension provides a comprehensive set of PDF-ViewHelpers for working with FPDF in Fluid. By defining the fpdf namespace, you can generate PDFs directly in your own TYPO3 extensions. It also includes a built-in plugin for rendering predefined PDFs, automatically exposing all available PDF definitions. Additional features include barcode generation, text rotation, PDF/A-3b support, as well as ZUGFeRD and Factur-X compatibility (e-invoice).",
+    "logo": "../Resources/Public/Icons/Extension.svg",
+    "markdown": "../Readme.en.md",
+    "meta": {
+        "description": "TYPO3 Fluid-FPDF - This extension provides you a complete set of ViewHelpers for dealing with FPDF by using Fluid. You can use the ViewHelpers easily in own Extensions just by defining the fpdf-Namespace. Additionally you're able to use the build in plugin, for displaying predefined PDF. This plugin offers you automatically all available PDFs.",
+        "abstract": "TYPO3 - Fluid-FPDF",
+        "keywords": "TYPO3, Extension, PDF, Fluid, FPDF",
+        "og:title": "TYPO3 Fluid-FPDF",
+        "og:description": "TYPO3 Fluid-FPDF - This extension provides you a complete set of ViewHelpers for dealing with FPDF by using Fluid. You can use the ViewHelpers easily in own Extensions just by defining the fpdf-Namespace. Additionally you're able to use the build in plugin, for displaying predefined PDF. This plugin offers you automatically all available PDFs."
+    },
+    "features": [
+        "All FPDF library functions available as ViewHelpers",
+        "PDFS can be saved as a file or output directly as download",
+        "Customised PDF design can be set as background image",
+        "PDF content listings/indexes/table-of-content can be created",
+        "Font subsetting available (text from RTE is parsed written in PDF, possible tags: h1, h2, h3, h4, h5, b, u, i, a, p, br, pagebreak, strike, strong, small, em, ul, ol, li, dl, dt, dd)",
+        "Bookmarks incl. linking can be generated",
+        "Barcode generator",
+        "Rotating text possible",
+        "PDF/A-3b support",
+        "ZUGFeRD support",
+        "Factur-X support",
+        "Free-of-charge with an open source license"
+    ],
+    "links": {
+        "product": {
+            "link": "https://www.coding.ms/typo3-extensions/typo3-fluid-fpdf/",
+            "name": "TYPO3 Fluid-FPDF Productdetails"
+        },
+        "documentation": {
+            "link": "https://www.coding.ms/documentation/typo3-fluid-fpdf",
+            "name": "TYPO3 Fluid-FPDF Documentation"
+        },
+        "fpdf-org": {
+            "link": "http://www.fpdf.org/",
+            "name": "FPDF.org"
+        },
+        "fpdf.de": {
+            "link": "http://www.fpdf.de/",
+            "name": "FPDF.de"
+        },
+        "download": {
+            "link": "https://typo3.org/extensions/repository/view/fluid_fpdf",
+            "name": "TYPO3 Fluid-FPDF Extension Download"
+        }
+    },
+    "pages": [
+        {
+            "title": "Configuration",
+            "pages": [
+                {
+                    "title": "Constants",
+                    "markdown": "Configuration/10_Constants.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - TypoScript constant settings",
+                        "abstract": "TypoScript constant settings",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Configuration, Constants",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "TypoScript constant settings "
+                    }
+                },
+                {
+                    "title": "Plugins",
+                    "markdown": "Configuration/20_Plugins.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Available plugins",
+                        "abstract": "Available plugins",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Configuration, Plugins",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Available plugins "
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Demos",
+            "pages": [
+                {
+                    "title": "Barcode",
+                    "markdown": "Demos/Barcode.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Barcode Example",
+                        "abstract": "Barcode Example",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, Barcode",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Barcode Example "
+                    }
+                },
+                {
+                    "title": "Bookmarks",
+                    "markdown": "Demos/Bookmarks.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF Tutorial Bookmarks",
+                        "abstract": "Fluid FPDF Tutorial Bookmarks",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, Bookmarks",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF Tutorial Bookmarks "
+                    }
+                },
+                {
+                    "title": "Custom Index",
+                    "markdown": "Demos/CustomIndex.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF Tutorial Custom Index",
+                        "abstract": "Fluid FPDF Tutorial Custom Index",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, CustomIndex",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF Tutorial Custom Index "
+                    }
+                },
+                {
+                    "title": "Debugging",
+                    "markdown": "Demos/Debugging.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF Tutorial Debugging",
+                        "abstract": "Fluid FPDF Tutorial Debugging",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, Debugging",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF Tutorial Debugging "
+                    }
+                },
+                {
+                    "title": "First Tutorial",
+                    "markdown": "Demos/FirstTutorial.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF Tutorial 1",
+                        "abstract": "Fluid FPDF Tutorial 1",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, FirstTutorial",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF Tutorial 1 "
+                    }
+                },
+                {
+                    "title": "Footer",
+                    "markdown": "Demos/Footer.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF Tutorial Footer",
+                        "abstract": "Fluid FPDF Tutorial Footer",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, Footer",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF Tutorial Footer "
+                    }
+                },
+                {
+                    "title": "FPDI",
+                    "markdown": "Demos/Fpdi.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF - FPDI Example",
+                        "abstract": "Fluid FPDF - FPDI Example",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, FPDI",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF - FPDI Example "
+                    }
+                },
+                {
+                    "title": "HTML Multi Cell",
+                    "markdown": "Demos/HtmlMultiCell.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF Tutorial HTML MultiCell for RTE-Texte",
+                        "abstract": "Fluid FPDF Tutorial HTML MultiCell for RTE-Texte",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, HTMLMultiCell",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF Tutorial HTML MultiCell for RTE-Texte "
+                    }
+                },
+                {
+                    "title": "Index",
+                    "markdown": "Demos/Index.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF Tutorial Index",
+                        "abstract": "Fluid FPDF Tutorial Index",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, Index",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF Tutorial Index "
+                    }
+                },
+                {
+                    "title": "Intro Index",
+                    "markdown": "Demos/IntroIndex.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF Tutorial Intro Index",
+                        "abstract": "Fluid FPDF Tutorial Intro Index",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, IntroIndex",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF Tutorial Intro Index "
+                    }
+                },
+                {
+                    "title": "PDF A",
+                    "markdown": "Demos/PdfA.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - PDF/A with ZUGFeRD (e-invoice)",
+                        "abstract": "PDF/A with ZUGFeRD (e-invoice)",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Demos, PDFA",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "PDF/A with ZUGFeRD (e-invoice) "
+                    }
+                }
+            ]
+        },
+        {
+            "title": "How To",
+            "pages": [
+                {
+                    "title": "Add a missing Font Character",
+                    "markdown": "HowTo/AddAMissingFontCharacter.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - How to add a missing € character to a font",
+                        "abstract": "How to add a missing € character to a font",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, HowTo, AddAMissingFontCharacter",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "How to add a missing € character to a font "
+                    }
+                },
+                {
+                    "title": "Creating PDF as String",
+                    "markdown": "HowTo/CreatingPdfAsString.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - How to write a PDF template, which returns the PDF as string?",
+                        "abstract": "How to write a PDF template, which returns the PDF as string?",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, HowTo, CreatingPDFAsString",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "How to write a PDF template, which returns the PDF as string? "
+                    }
+                },
+                {
+                    "title": "Dump all Font Characters",
+                    "markdown": "HowTo/DumpAllFontCharacters.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - A character of my font isn't displayed well in PDF (for example the €-character) - what to do?",
+                        "abstract": "A character of my font isn't displayed well in PDF (for example the €-character) - what to do?",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, HowTo, DumpAllFontCharacters",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "A character of my font isn't displayed well in PDF (for example the €-character) - what to do? "
+                    }
+                },
+                {
+                    "title": "How to set Background PDF",
+                    "markdown": "HowTo/HowToSetBackgroundPdf.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - How to set a background PDF",
+                        "abstract": "How to set a background PDF",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, HowTo, HowToSetBackgroundPDF",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "How to set a background PDF "
+                    }
+                },
+                {
+                    "title": "How to use own Fonts",
+                    "markdown": "HowTo/HowToUseOwnFonts.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - How to use your own fonts in PDF",
+                        "abstract": "How to use your own fonts in PDF",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, HowTo, HowToUseOwnFonts",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "How to use your own fonts in PDF "
+                    }
+                },
+                {
+                    "title": "Trigger add Page in HTML Output",
+                    "markdown": "HowTo/TriggerAddPageInHtmlOutput.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - How to trigger a new page?",
+                        "abstract": "How to trigger a new page?",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, HowTo, TriggerAddPageInHTMLOutput",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "How to trigger a new page? "
+                    }
+                },
+                {
+                    "title": "Using Variables in Footer",
+                    "markdown": "HowTo/UsingVariablesInFooter.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - How to pass some variables into the Footer-Template?",
+                        "abstract": "How to pass some variables into the Footer-Template?",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, HowTo, UsingVariablesInFooter",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "How to pass some variables into the Footer-Template? "
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Usage",
+            "pages": [
+                {
+                    "title": "View-Helper",
+                    "markdown": "Usage/ViewHelper.en.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf Extension - Fluid FPDF ViewHelpers",
+                        "abstract": "Fluid FPDF ViewHelpers",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Usage, ViewHelper",
+                        "og:title": "TYPO3 Fluid-Fpdf Extension",
+                        "og:description": "Fluid FPDF ViewHelpers "
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Developer",
+            "pages": [
+                {
+                    "title": "Change-Log",
+                    "markdown": "../ChangeLog.md",
+                    "meta": {
+                        "description": "TYPO3 Fluid-Fpdf - Fluid-FPDF for TYPO3 Change-Log",
+                        "abstract": "Fluid-FPDF for TYPO3 Change-Log",
+                        "keywords": "TYPO3, Extension, Fluid-Fpdf, Developer, Change-Log",
+                        "og:title": "TYPO3 Fluid-Fpdf",
+                        "og:description": "Fluid-FPDF for TYPO3 Change-Log"
+                    }
+                }
+            ]
+        }
+    ]
+}

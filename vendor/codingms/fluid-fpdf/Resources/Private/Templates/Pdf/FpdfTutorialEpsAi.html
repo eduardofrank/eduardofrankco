@@ -1,0 +1,22 @@
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en"
+	  xmlns:f="http://typo3.org/ns/fluid/ViewHelpers"
+	  xmlns:fpdf="http://typo3.org/ns/CodingMs/FluidFpdf/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+<fpdf:pdf>
+	<fpdf:setFont family="Arial" style="" size="15" />
+
+
+	<fpdf:addPage />
+
+	<fpdf:variable.set name="link" value="{fpdf:addLink()}" />
+
+	<fpdf:imageEps x="20" y="20" width="80" height="80" filename="bug.eps" />
+	<fpdf:imageEps x="20" y="120" width="100" height="30" filename="typo3.ai" link="{link}" />
+
+	<fpdf:addPage />
+	<fpdf:setLink link="{link}" />
+	<fpdf:imageEps x="20" y="120" width="100" height="30" filename="typo3.ai" />
+
+
+</fpdf:pdf>
+</html>

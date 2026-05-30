@@ -1,0 +1,12 @@
+.idea
+vendor
+composer.lock
+.php-cs-fixer.cache
+.Build
+Documentation-GENERATED-temp
+/public
+.phplint.cache
+.cache
+composer.json.testing
+var
+*.map

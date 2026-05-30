@@ -1,0 +1,77 @@
+{
+    "name": "maxserv/frontend-request",
+    "description": "Helper extension to make a frontend request from the backend of TYPO3 using javascript.",
+    "license": "GPL-3.0-or-later",
+    "type": "typo3-cms-extension",
+    "keywords": [
+        "TYPO3 CMS",
+        "MaxServ"
+    ],
+    "authors": [
+        {
+            "name": "Team MaxServ",
+            "email": "support@maxserv.com",
+            "homepage": "https://maxserv.com"
+        }
+    ],
+    "homepage": "https://maxserv.com",
+    "support": {
+        "issues": "https://github.com/MaxServ/frontend-request/issues",
+        "source": "https://github.com/MaxServ/frontend-request",
+        "docs": "https://docs.typo3.org/p/maxserv/frontend_request/main/en-us/"
+    },
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "typo3/cms-backend": "^12.4.25 || ^13.4 || ^14.1",
+        "typo3/cms-core": "^12.4.25 || ^13.4 || ^14.1",
+        "typo3/cms-frontend": "^12.4.25 || ^13.4 || ^14.1"
+    },
+    "require-dev": {
+        "composer/class-map-generator": "^1.3.4",
+        "dg/bypass-finals": "^1.8",
+        "ergebnis/composer-normalize": "^2.43",
+        "friendsofphp/php-cs-fixer": "^3.60.0",
+        "php-parallel-lint/php-parallel-lint": "^1.4",
+        "phpstan/extension-installer": "^1.0",
+        "phpstan/phpstan": "^1.12 || ^2.1",
+        "phpunit/phpunit": "^10.1 || ^11.2.5",
+        "saschaegerer/phpstan-typo3": "^1.10 || ^2.1 || ^3.0.1",
+        "typo3/coding-standards": "^0.7.1 || ^0.8.0",
+        "typo3/testing-framework": "^7.1.0 || ^8.2.0 || ^9.5.0"
+    },
+    "replace": {
+        "typo3-ter/frontend-request": "self.version"
+    },
+    "autoload": {
+        "psr-4": {
+            "MaxServ\\FrontendRequest\\": "Classes/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "MaxServ\\FrontendRequest\\Tests\\": "Tests/"
+        }
+    },
+    "config": {
+        "allow-plugins": {
+            "ergebnis/composer-normalize": true,
+            "phpstan/extension-installer": true,
+            "sbuerk/typo3-cmscomposerinstallers-testingframework-bridge": true,
+            "typo3/class-alias-loader": true,
+            "typo3/cms-composer-installers": true
+        },
+        "bin-dir": ".Build/bin",
+        "preferred-install": {
+            "*": "dist"
+        },
+        "sort-packages": true,
+        "vendor-dir": ".Build/vendor"
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "frontend_request",
+            "web-dir": ".Build/public"
+        }
+    }
+}

@@ -1,0 +1,43 @@
+categories:
+  Lightbox:
+    label: Lightbox
+  Lightbox.Colorbox:
+    label: Colorbox
+    parent: Lightbox
+settings:
+  styles.content.imgtext.linkWrap.lightboxEnabled:
+    default: '1'
+    label: 'LLL:EXT:parsedown_extra/Resources/Private/Language/locallang_constants.xlf:tx_parsedownextra_constants.lightbox_enabled'
+    type: string
+    enum:
+      0: '0'
+      1: '1'
+  styles.content.imgtext.linkWrap.lightboxCssClass:
+    default: lightbox
+    label: 'LLL:EXT:parsedown_extra/Resources/Private/Language/locallang_constants.xlf:tx_parsedownextra_constants.lightbox_css_class'
+    type: string
+  styles.content.imgtext.linkWrap.lightboxRelAttribute:
+    default: 'lightbox[{field:uid}]'
+    label: 'LLL:EXT:parsedown_extra/Resources/Private/Language/locallang_constants.xlf:tx_parsedownextra_constants.lightbox_rel_attribute'
+    type: string
+  themes.configuration.lightbox.colorbox.theme:
+    default: '2'
+    category: Lightbox.Colorbox
+    label: 'LLL:EXT:parsedown_extra/Resources/Private/Language/locallang_constants.xlf:tx_parsedownextra_constants.lightbox_theme'
+    type: string
+    enum:
+      1: '1'
+      '2': '2'
+      '3': '3'
+      '4': '4'
+      '5': '5'
+  themes.configuration.lightbox.colorbox.cssUrl:
+    default: 'https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.4.33/'
+    category: Lightbox.Colorbox
+    label: 'LLL:EXT:parsedown_extra/Resources/Private/Language/locallang_constants.xlf:tx_parsedownextra_constants.cssUrl'
+    type: string
+  themes.configuration.lightbox.colorbox.jsUrl:
+    default: 'https://cdnjs.cloudflare.com/ajax/libs/jquery.colorbox/1.4.33/'
+    category: Lightbox.Colorbox
+    label: 'LLL:EXT:parsedown_extra/Resources/Private/Language/locallang_constants.xlf:tx_parsedownextra_constants.jsUrl'
+    type: string

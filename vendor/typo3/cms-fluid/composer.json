@@ -1,0 +1,63 @@
+{
+	"name": "typo3/cms-fluid",
+	"type": "typo3-cms-framework",
+	"description": "TYPO3 CMS Fluid Integration - Integration of the Fluid templating engine into TYPO3.",
+	"homepage": "https://typo3.community/",
+	"funding": [
+		{
+			"type": "membership",
+			"url": "https://typo3.org/membership"
+		}
+	],
+	"license": [
+		"GPL-2.0-or-later"
+	],
+	"authors": [
+		{
+			"name": "TYPO3 Core Team",
+			"email": "typo3cms@typo3.org",
+			"role": "Developer"
+		}
+	],
+	"support": {
+		"issues": "https://forge.typo3.org/issues/",
+		"forum": "https://talk.typo3.org/",
+		"source": "https://github.com/TYPO3/typo3/",
+		"docs": "https://docs.typo3.org/other/typo3/view-helper-reference/main/en-us/",
+		"rss": "https://news.typo3.com/rss/",
+		"chat": "https://typo3.community/meet/slack/",
+		"security": "https://typo3.org/security/"
+	},
+	"config": {
+		"sort-packages": true
+	},
+	"require": {
+		"symfony/dependency-injection": "^7.4.8",
+		"symfony/finder": "^7.4.8",
+		"typo3/cms-core": "14.3.2",
+		"typo3/cms-extbase": "14.3.2",
+		"typo3fluid/fluid": "^5.3.1"
+	},
+	"conflict": {
+		"typo3/cms": "*"
+	},
+	"extra": {
+		"branch-alias": {
+			"dev-main": "14.3.x-dev"
+		},
+		"typo3/cms": {
+			"Package": {
+				"serviceProvider": "TYPO3\\CMS\\Fluid\\ServiceProvider",
+				"protected": true,
+				"partOfFactoryDefault": true,
+				"partOfMinimalUsableSystem": true
+			},
+			"extension-key": "fluid"
+		}
+	},
+	"autoload": {
+		"psr-4": {
+			"TYPO3\\CMS\\Fluid\\": "Classes/"
+		}
+	}
+}

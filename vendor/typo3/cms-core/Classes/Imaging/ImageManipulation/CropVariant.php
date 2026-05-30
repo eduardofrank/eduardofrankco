@@ -1,0 +1,191 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Core\Imaging\ImageManipulation;
+
+use TYPO3\CMS\Core\Resource\FileInterface;
+
+class CropVariant
+{
+    /**
+     * @var Ratio[]
+     */
+    protected array $allowedAspectRatios = [];
+
+    protected string $selectedRatio = '';
+    protected ?Area $focusArea = null;
+
+    /**
+     * @var Area[]|null
+     */
+    protected ?array $coverAreas = null;
+
+    protected bool $excludeFromSync = false;
+
+    /**
+     * @param Ratio[] $allowedAspectRatios
+     * @param string|null $selectedRatio
+     * @param Area|null $focusArea
+     * @param Area[]|null $coverAreas
+     * @throws InvalidConfigurationException
+     */
+    public function __construct(
+        protected string $id,
+        protected string $title,
+        protected Area $cropArea,
+        ?array $allowedAspectRatios = null,
+        ?string $selectedRatio = null,
+        ?Area $focusArea = null,
+        ?array $coverAreas = null,
+        bool $excludeFromSync = false
+    ) {
+        if ($allowedAspectRatios) {
+            $this->setAllowedAspectRatios(...$allowedAspectRatios);
+            if ($selectedRatio && isset($this->allowedAspectRatios[$selectedRatio])) {
+                $this->selectedRatio = $selectedRatio;
+            } else {
+                $this->selectedRatio = current($this->allowedAspectRatios)->getId();
+            }
+        }
+        $this->focusArea = $focusArea;
+        if ($coverAreas !== null) {
+            $this->setCoverAreas(...$coverAreas);
+        }
+        $this->excludeFromSync = $excludeFromSync;
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    public static function createFromConfiguration(string $id, array $config): CropVariant
+    {
+        try {
+            return new self(
+                $id,
+                $config['title'] ?? '',
+                Area::createFromConfiguration($config['cropArea']),
+                isset($config['allowedAspectRatios']) ? Ratio::createMultipleFromConfiguration($config['allowedAspectRatios']) : null,
+                $config['selectedRatio'] ?? null,
+                isset($config['focusArea']) ? Area::createFromConfiguration($config['focusArea']) : null,
+                isset($config['coverAreas']) ? Area::createMultipleFromConfiguration($config['coverAreas']) : null,
+                isset($config['excludeFromSync']) ? filter_var($config['excludeFromSync'], FILTER_VALIDATE_BOOLEAN) : false,
+            );
+        } catch (\Throwable $throwable) {
+            throw new InvalidConfigurationException(sprintf('Invalid type in configuration for crop variant: %s', $throwable->getMessage()), 1485278693, $throwable);
+        }
+    }
+
+    /**
+     * @internal
+     */
+    public function asArray(): array
+    {
+        $coverAreasAsArray = null;
+        $allowedAspectRatiosAsArray = [];
+        foreach ($this->allowedAspectRatios as $id => $allowedAspectRatio) {
+            $allowedAspectRatiosAsArray[$id] = $allowedAspectRatio->asArray();
+        }
+        if ($this->coverAreas !== null) {
+            $coverAreasAsArray = [];
+            foreach ($this->coverAreas as $coverArea) {
+                $coverAreasAsArray[] = $coverArea->asArray();
+            }
+        }
+        return [
+            'id' => $this->id,
+            'title' => $this->title,
+            'cropArea' => $this->cropArea->asArray(),
+            'allowedAspectRatios' => $allowedAspectRatiosAsArray,
+            'selectedRatio' => $this->selectedRatio,
+            'focusArea' => $this->focusArea?->asArray(),
+            'coverAreas' => $coverAreasAsArray ?? null,
+            'excludeFromSync' => $this->excludeFromSync,
+        ];
+    }
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+
+    public function getCropArea(): Area
+    {
+        return $this->cropArea;
+    }
+
+    public function getFocusArea(): ?Area
+    {
+        return $this->focusArea;
+    }
+
+    public function applyRatioRestrictionToSelectedCropArea(FileInterface $file): CropVariant
+    {
+        if (!$this->selectedRatio) {
+            return $this;
+        }
+        $newVariant = clone $this;
+        $newArea = $this->cropArea->makeAbsoluteBasedOnFile($file);
+        $newArea = $newArea->applyRatioRestriction($this->allowedAspectRatios[$this->selectedRatio]);
+        $newVariant->cropArea = $newArea->makeRelativeBasedOnFile($file);
+        return $newVariant;
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    protected function setAllowedAspectRatios(Ratio ...$ratios): void
+    {
+        $this->allowedAspectRatios = [];
+        foreach ($ratios as $ratio) {
+            $this->addAllowedAspectRatio($ratio);
+        }
+    }
+
+    /**
+     * @throws InvalidConfigurationException
+     */
+    protected function addAllowedAspectRatio(Ratio $ratio): void
+    {
+        if (isset($this->allowedAspectRatios[$ratio->getId()])) {
+            throw new InvalidConfigurationException(sprintf('Ratio with with duplicate ID (%s) is configured. Make sure all configured ratios have different ids.', $ratio->getId()), 1485274618);
+        }
+        $this->allowedAspectRatios[$ratio->getId()] = $ratio;
+    }
+
+    protected function setCoverAreas(Area ...$areas): void
+    {
+        $this->coverAreas = [];
+        foreach ($areas as $area) {
+            $this->addCoverArea($area);
+        }
+    }
+
+    protected function addCoverArea(Area $area): void
+    {
+        $this->coverAreas[] = $area;
+    }
+
+    public function isExcludeFromSync(): bool
+    {
+        return $this->excludeFromSync;
+    }
+
+    public function setExcludeFromSync(bool $excludeFromSync): void
+    {
+        $this->excludeFromSync = $excludeFromSync;
+    }
+}

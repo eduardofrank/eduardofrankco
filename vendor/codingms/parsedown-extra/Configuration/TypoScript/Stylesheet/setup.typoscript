@@ -1,0 +1,77 @@
+plugin.tx_parsedownextra._CSS_DEFAULT_STYLE (
+
+	.tx-parsedown-extra h2 {
+		margin-top: 30px;
+	}
+	.tx-parsedown-extra h3 {
+		margin-top: 20px;
+	}
+
+	.tx-parsedown-extra img {
+		border: 1px solid #CCC;
+		width: 100%;
+		height: auto;
+	}
+	.tx-parsedown-extra img.inline-image {
+		width: auto !important;
+		height: auto !important;
+		margin-left: 6px !important;
+		margin-right: 6px !important;
+	}
+	.tx-parsedown-extra img.inline-image-right {
+		float: right;
+		width: 300px;
+		margin-left: 15px;
+	}
+	.tx-parsedown-extra li {
+		margin-bottom: 10px;
+	}
+	.tx-parsedown-extra li li {
+		margin-left: 20px;
+	}
+	.tx-parsedown-extra h1 abbr,
+	.tx-parsedown-extra h2 abbr,
+	.tx-parsedown-extra h3 abbr,
+	.tx-parsedown-extra h4 abbr,
+	.tx-parsedown-extra h5 abbr,
+	.tx-parsedown-extra h6 abbr {
+		cursor: default;
+		text-decoration: none;
+		border-bottom: 0 solid;
+	}
+	/** Prefromatted text/code */
+	.tx-parsedown-extra pre {
+		border: 1px solid #CCC;
+		padding: 10px;
+		font-size: 12px;
+	}
+	.tx-parsedown-extra pre[class*="language-"] {
+		border-radius: 0;
+		background-color: #303030;
+		text-shadow: none;
+		border: none;
+		margin-bottom: 30px;
+	}
+	.tx-parsedown-extra .tag {
+		display: inherit;
+		padding: inherit;
+		font-size: inherit;
+		font-weight: inherit;
+		line-height: inherit;
+		color: inherit;
+		text-align: inherit;
+		white-space: inherit;
+		vertical-align: inherit;
+		border-radius: inherit;
+	}
+
+	.tx-parsedown-extra blockquote {
+		border: 1px solid #ddd;
+		border-left: 8px solid #ddd;
+		padding: 10px;
+	}
+	.tx-parsedown-extra :not(pre) > code[class*="language-"] {
+		border-radius: 0;
+    	padding: 4px 8px;
+	}
+)

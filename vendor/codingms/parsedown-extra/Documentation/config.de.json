@@ -1,0 +1,212 @@
+{
+    "title": "TYPO3 Parsedown-Extra - Markdown by coding.ms",
+    "subtitle": "Bietet ein Content-Element und einen ViewHelper zur Darstellung von Markdown-Dateien inklusive Mermaid-Diagrammen (UML, Activity, State und mehr). Verarbeitet E-Mail-Links mit TYPO3-Verschlüsselung. ViewHelper zum Parsen von Markdown aus individuellen Quellen. Globale Definition von Abkürzungen per TypoScript. Code-/Syntax-Highlighting und vieles mehr.",
+    "logo": "../Resources/Public/Icons/Extension.svg",
+    "markdown": "../Readme.de.md",
+    "features": [
+        "Parst E-Mailadressen Links mit der TYPO3 encryption",
+        "Inhaltselement zur Auswahl von Markdown-Dateien, welche geparst im Frontend ausgegeben werden",
+        "ViewHelper zum parsen von Markdown aus beliebigen Quellen",
+        "Global definiertes Abkürzungs-Verzeichnis aus TypoScript",
+        "SourceCode Syntax-Highlighting mit PrismJS",
+        "Syntax-Highlighting für TypoScript",
+        "Diagramme und Charts via MermaidJS"
+    ],
+    "links": {
+        "product": {
+            "link": "https://www.coding.ms/typo3-extensions/typo3-parsedown-extra/",
+            "name": "TYPO3 Parsedown-Extra Productdetails"
+        },
+        "documentation": {
+            "link": "https://www.coding.ms/de/dokumentation/typo3-parsedown-extra",
+            "name": "TYPO3 Parsedown-Extra Dokumentation"
+        },
+        "markdown": {
+            "link": "https://daringfireball.net/projects/markdown/syntax",
+            "name": "Markdown Syntax"
+        },
+        "parsedown": {
+            "link": "http://parsedown.org/",
+            "name": "Parsedown Webseite"
+        },
+        "parsedown-extra": {
+            "link": "https://michelf.ca/projects/php-markdown/extra/",
+            "name": "Parsedown-Extra Webseite"
+        },
+        "mermaid-js": {
+            "link": "https://mermaid.js.org/",
+            "name": "Mermaid Diagramming and charting tool"
+        }
+    },
+    "meta": {
+        "description": "TYPO3 Parsedown Extra (Markdown) - Rendert Markdown mit Hilfe der Parsedown-Extra Bibliothek in TYPO3.",
+        "abstract": "Parsedown Extra - Markdown",
+        "keywords": "TYPO3, extension, Markdown",
+        "og:title": "TYPO3 Parsedown Extra (Markdown)",
+        "og:description": "TYPO3 Parsedown Extra (Markdown) - Rendert Markdown mit Hilfe der Parsedown-Extra Bibliothek in TYPO3."
+    },
+    "pages": [
+        {
+            "title": "Konfiguration",
+            "originalTitle": "Configuration",
+            "pages": [
+                {
+                    "title": "Konstanten",
+                    "originalTitle": "Constants",
+                    "markdown": "Configuration/10_Constants.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - TypoScript-Konstanten Einstellungen",
+                        "abstract": "TypoScript-Konstanten Einstellungen",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Configuration, Constants",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "TypoScript-Konstanten Einstellungen "
+                    }
+                },
+                {
+                    "title": "Plugins",
+                    "originalTitle": "Plugins",
+                    "markdown": "Configuration/20_Plugins.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Verfügbare Plugin",
+                        "abstract": "Verfügbare Plugin",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Configuration, Plugins",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Verfügbare Plugin "
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Verwendung",
+            "originalTitle": "Usage",
+            "pages": [
+                {
+                    "title": "Abkürzungen",
+                    "originalTitle": "Abbreviations",
+                    "markdown": "Usage/Abbreviations.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Abkürzungen in Parsedown-Extra für TYPO3",
+                        "abstract": "Abkürzungen in Parsedown-Extra für TYPO3",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Usage, Abbreviations",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Abkürzungen in Parsedown-Extra für TYPO3 "
+                    }
+                },
+                {
+                    "title": "Blockzitate",
+                    "originalTitle": "Blockquotes",
+                    "markdown": "Usage/Blockquotes.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Block-Zitate",
+                        "abstract": "Block-Zitate",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Usage, Blockquotes",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Block-Zitate "
+                    }
+                },
+                {
+                    "title": "HTML-Rendering",
+                    "originalTitle": "HTML-Rendering",
+                    "markdown": "Usage/Htmlrendering.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Konfiguration von HTML-Rendering in Parsedown-Extra für TYPO3",
+                        "abstract": "Konfiguration von HTML-Rendering in Parsedown-Extra für TYPO3",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Usage, HTML-Rendering",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Konfiguration von HTML-Rendering in Parsedown-Extra für TYPO3 "
+                    }
+                },
+                {
+                    "title": "Bilder",
+                    "originalTitle": "Images",
+                    "markdown": "Usage/Images.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Bilder in Parsedown-Extra für TYPO3",
+                        "abstract": "Bilder in Parsedown-Extra für TYPO3",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Usage, Images",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Bilder in Parsedown-Extra für TYPO3 "
+                    }
+                },
+                {
+                    "title": "Links",
+                    "originalTitle": "Links",
+                    "markdown": "Usage/Links.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Links in Parsedown-Extra für TYPO3",
+                        "abstract": "Links in Parsedown-Extra für TYPO3",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Usage, Links",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Links in Parsedown-Extra für TYPO3 "
+                    }
+                },
+                {
+                    "title": "Mermaid",
+                    "originalTitle": "Mermaid",
+                    "markdown": "Usage/Mermaid.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Diagramme und Charts mit Mermaid",
+                        "abstract": "Diagramme und Charts mit Mermaid",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Usage, Mermaid",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Diagramme und Charts mit Mermaid "
+                    }
+                },
+                {
+                    "title": "Styleguide",
+                    "originalTitle": "Styleguide",
+                    "markdown": "Usage/Styleguide.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - First Headline",
+                        "abstract": "First Headline",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Usage, Styleguide",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "First Headline "
+                    }
+                },
+                {
+                    "title": "Empfehlungen",
+                    "originalTitle": "Suggestions",
+                    "markdown": "Usage/Suggestions.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Vorschläge für ausgewogene Dokumentationen",
+                        "abstract": "Vorschläge für ausgewogene Dokumentationen",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Usage, Suggestions",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Vorschläge für ausgewogene Dokumentationen "
+                    }
+                }
+            ]
+        },
+        {
+            "title": "Developer",
+            "originalTitle": "Developer",
+            "pages": [
+                {
+                    "title": "Übersetzungen",
+                    "originalTitle": "Translations",
+                    "markdown": "Developer/40_Translations.de.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra Erweiterung - Übersetzungen",
+                        "abstract": "Übersetzungen",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Developer, Translations",
+                        "og:title": "TYPO3 Parsedown-Extra Erweiterung",
+                        "og:description": "Übersetzungen "
+                    }
+                },
+                {
+                    "title": "Change-Log",
+                    "originalTitle": "Change-Log",
+                    "markdown": "../ChangeLog.md",
+                    "meta": {
+                        "description": "TYPO3 Parsedown-Extra - Parsedown Extra Change-Log",
+                        "abstract": "Parsedown Extra Change-Log",
+                        "keywords": "TYPO3, Erweiterung, Parsedown-Extra, Developer, Change-Log",
+                        "og:title": "TYPO3 Parsedown-Extra",
+                        "og:description": "Parsedown Extra Change-Log"
+                    }
+                }
+            ]
+        }
+    ]
+}

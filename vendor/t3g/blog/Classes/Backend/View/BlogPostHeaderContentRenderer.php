@@ -1,0 +1,78 @@
+<?php
+
+declare(strict_types = 1);
+
+/*
+ * This file is part of the package t3g/blog.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE file that was distributed with this source code.
+ */
+
+namespace T3G\AgencyPack\Blog\Backend\View;
+
+use Psr\Http\Message\ServerRequestInterface;
+use T3G\AgencyPack\Blog\Constants;
+use T3G\AgencyPack\Blog\Domain\Repository\PostRepository;
+use TYPO3\CMS\Backend\Utility\BackendUtility;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\SingletonInterface;
+use TYPO3\CMS\Core\Type\Bitmask\Permission;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\View\ViewFactoryData;
+use TYPO3\CMS\Core\View\ViewFactoryInterface;
+use TYPO3\CMS\Core\View\ViewInterface;
+
+class BlogPostHeaderContentRenderer implements SingletonInterface
+{
+    public function __construct(
+        protected readonly ExtensionConfiguration $extensionConfiguration,
+        protected readonly PostRepository $postRepository,
+        protected readonly ViewFactoryInterface $viewFactory
+    ) {
+    }
+
+    public function render(ServerRequestInterface $request): string
+    {
+        $blogConfiguration = $this->extensionConfiguration->get('blog');
+        if ((bool)($blogConfiguration['disablePageLayoutHeader'] ?? true)) {
+            return '';
+        }
+
+        $pageUid = (int)($request->getQueryParams()['id'] ?? 0);
+        $pageInfo = BackendUtility::readPageAccess($pageUid, $GLOBALS['BE_USER']->getPagePermsClause(Permission::PAGE_SHOW));
+        if (($pageInfo['doktype'] ?? 0) !== Constants::DOKTYPE_BLOG_POST) {
+            return '';
+        }
+
+        $pageRenderer = GeneralUtility::makeInstance(PageRenderer::class);
+        $pageRenderer->addCssFile('EXT:blog/Resources/Public/Css/pagelayout.min.css', 'stylesheet', 'all', '', false);
+
+        $query = $this->postRepository->createQuery();
+        $querySettings = $query->getQuerySettings();
+        $querySettings->setIgnoreEnableFields(true);
+        $this->postRepository->setDefaultQuerySettings($querySettings);
+        $post = $this->postRepository->findByUidRespectQuerySettings($pageUid);
+
+        // Template
+        $view = $this->getTemplateObject($request);
+        $view->assignMultiple([
+            'pageUid' => $pageUid,
+            'pageInfo' => $pageInfo,
+            'post' => $post,
+        ]);
+
+        return $view->render('PageLayout/Header');
+    }
+
+    protected function getTemplateObject(ServerRequestInterface $request): ViewInterface
+    {
+        return $this->viewFactory->create(new ViewFactoryData(
+            templateRootPaths: [GeneralUtility::getFileAbsFileName('EXT:blog/Resources/Private/Templates')],
+            partialRootPaths: [GeneralUtility::getFileAbsFileName('EXT:blog/Resources/Private/Partials')],
+            layoutRootPaths: [GeneralUtility::getFileAbsFileName('EXT:blog/Resources/Private/Layouts')],
+            request: $request,
+        ));
+    }
+}

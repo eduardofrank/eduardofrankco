@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+    <file source-language="en" datatype="plaintext" original="messages" date="2022-12-30T12:00:00Z"
+          product-name="yoast_seo">
+        <header/>
+        <body>
+            <trans-unit id="pages.palettes.focusKeyphrase" resname="pages.palettes.focusKeyphrase">
+                <source>Focus keyphrase</source>
+            </trans-unit>
+            <trans-unit id="pages.palettes.focusRelatedKeyphrases" resname="pages.palettes.focusRelatedKeyphrases">
+                <source>Related keyphrases</source>
+            </trans-unit>
+            <trans-unit id="pages.palettes.insights" resname="pages.palettes.insights">
+                <source>Insights</source>
+            </trans-unit>
+            <trans-unit id="pages.palettes.robots" resname="pages.palettes.robots">
+                <source>Advanced robot instructions</source>
+            </trans-unit>
+            <trans-unit id="pages.palettes.readability" resname="pages.palettes.readability">
+                <source>Readability analysis</source>
+            </trans-unit>
+            <trans-unit id="pages.palettes.advanced" resname="pages.palettes.advanced">
+                <source>Yoast SEO settings</source>
+            </trans-unit>
+            <trans-unit id="pages.palettes.advanced.description" resname="pages.palettes.advanced.description">
+                <source>Configure how Yoast SEO behaves for this page. Disable the analysis to exclude this page from
+                    all analysis (this will also remove the page from internal linking suggestions); hide the snippet
+                    preview to remove the SERP preview from the page module and the
+                    editing form.
+                </source>
+            </trans-unit>
+            <trans-unit id="pages.fields.tx_yoastseo_focuskeyword_related"
+                        resname="pages.fields.tx_yoastseo_focuskeyword_related">
+                <source>Focus keywords</source>
+            </trans-unit>
+            <trans-unit id="pages.fields.tx_yoastseo_facebook_preview"
+                        resname="pages.fields.tx_yoastseo_facebook_preview">
+                <source>Facebook preview</source>
+            </trans-unit>
+            <trans-unit id="pages.fields.tx_yoastseo_twitter_preview"
+                        resname="pages.fields.tx_yoastseo_twitter_preview">
+                <source>X/Twitter preview</source>
+            </trans-unit>
+            <trans-unit id="pages.palettes.robots" resname="pages.palettes.robots">
+                <source>Advanced robot instructions</source>
+            </trans-unit>
+            <trans-unit id="pages.fields.robots.noimageindex" resname="pages.fields.robots.noimageindex">
+                <source>Image index</source>
+            </trans-unit>
+            <trans-unit id="pages.fields.robots.noarchive" resname="pages.fields.robots.noarchive">
+                <source>Archive</source>
+            </trans-unit>
+            <trans-unit id="pages.fields.robots.nosnippet" resname="pages.fields.robots.nosnippet">
+                <source>Snippet</source>
+            </trans-unit>
+
+            <trans-unit id="tx_yoastseo_related_focuskeyword.title" resname="tx_yoastseo_related_focuskeyword.title">
+                <source>Yoast SEO Focus keywords</source>
+            </trans-unit>
+            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.keyword"
+                        resname="tx_yoastseo_related_focuskeyword.fields.keyword">
+                <source>SEO Focus keyword</source>
+            </trans-unit>
+            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.analysis"
+                        resname="tx_yoastseo_related_focuskeyword.fields.analysis">
+                <source>Analysis</source>
+            </trans-unit>
+            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.synonyms"
+                        resname="tx_yoastseo_related_focuskeyword.fields.synonyms">
+                <source>Synonyms</source>
+            </trans-unit>
+            <trans-unit id="tx_yoastseo_related_focuskeyword.fields.synonyms"
+                        resname="tx_yoastseo_related_focuskeyword.fields.synonyms">
+                <source>Synonyms</source>
+            </trans-unit>
+            <trans-unit id="tx_yoastseo_prominent_word.title" resname="tx_yoastseo_prominent_word.title">
+                <source>Yoast SEO Prominent words</source>
+            </trans-unit>
+            <trans-unit id="tx_yoastseo_prominent_word.fields.stem" resname="tx_yoastseo_prominent_word.fields.stem">
+                <source>Stem</source>
+            </trans-unit>
+            <trans-unit id="tx_yoastseo_prominent_word.fields.table" resname="tx_yoastseo_prominent_word.fields.table">
+                <source>Table</source>
+            </trans-unit>
+            <trans-unit id="tx_yoastseo_prominent_word.fields.weight"
+                        resname="tx_yoastseo_prominent_word.fields.weight">
+                <source>Weight</source>
+            </trans-unit>
+
+            <trans-unit id="synonyms" resname="synonyms">
+                <source>Synonyms</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

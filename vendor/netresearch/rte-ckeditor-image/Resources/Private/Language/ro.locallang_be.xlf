@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" version="1.2">
+  <file source-language="en" datatype="plaintext" product-name="rte_ckeditor_image" target-language="ro">
+    <header/>
+    <body>
+      <trans-unit id="labels.ckeditor.cssclass" xml:space="preserve" approved="yes">
+				<source>Custom CSS class</source>
+			<target state="final">Clasă CSS personalizată</target></trans-unit>
+      <trans-unit id="labels.ckeditor.width" xml:space="preserve" approved="yes">
+				<source>Width</source>
+			<target state="final">Lățime</target></trans-unit>
+      <trans-unit id="labels.ckeditor.height" xml:space="preserve" approved="yes">
+				<source>Height</source>
+			<target state="final">Înălțime</target></trans-unit>
+      <trans-unit id="labels.ckeditor.title" xml:space="preserve" approved="yes">
+				<source>Advisory Title</source>
+			<target state="final">Titlu consultativ</target></trans-unit>
+      <trans-unit id="labels.ckeditor.alt" xml:space="preserve" approved="yes">
+				<source>Alternative Text</source>
+			<target state="final">Text alternativ</target></trans-unit>
+      <trans-unit id="labels.ckeditor.clicktoenlarge" xml:space="preserve" approved="yes">
+				<source>Click to Enlarge</source>
+			<target state="final">Clic pentru a mări</target></trans-unit>
+      <trans-unit id="labels.ckeditor.enabled" xml:space="preserve" approved="yes">
+				<source>Enabled</source>
+			<target state="final">Activat</target></trans-unit>
+      <trans-unit id="labels.ckeditor.skipimageprocessing" xml:space="preserve" approved="yes">
+				<source>Skip Image Processing</source>
+			<target state="final">Omite procesarea imaginii</target></trans-unit>
+      <trans-unit id="labels.ckeditor.imageproperties" xml:space="preserve" approved="yes">
+				<source>Image Properties</source>
+			<target state="final">Proprietăți imagine</target></trans-unit>
+      <trans-unit id="labels.ckeditor.cancel" xml:space="preserve" approved="yes">
+				<source>Cancel</source>
+			<target state="final">Anulare</target></trans-unit>
+      <trans-unit id="labels.ckeditor.save" xml:space="preserve" approved="yes">
+				<source>Save</source>
+			<target state="final">Salvare</target></trans-unit>
+      <trans-unit id="labels.ckeditor.insertimage" xml:space="preserve" approved="yes">
+				<source>Insert image</source>
+			<target state="final">Inserează imagine</target></trans-unit>
+      <trans-unit id="labels.ckeditor.nodefaultmetadata" xml:space="preserve" approved="yes">
+				<source>No default %s available in file metadata. Cannot override empty value.</source>
+			<target state="final">Nu există %s implicit disponibil în metadatele fișierului. Nu se poate suprascrie valoarea goală.</target></trans-unit>
+      <trans-unit id="labels.ckeditor.zoomhelp" xml:space="preserve" approved="yes">
+				<source>Enables click-to-enlarge/lightbox functionality. Default popup configuration is provided automatically. See documentation for custom lightbox library integration.</source>
+			<target state="final">Activează funcționalitatea clic-pentru-mărire/lightbox. Configurarea implicită a ferestrei popup este furnizată automat. Consultați documentația pentru integrarea bibliotecii lightbox personalizate.</target></trans-unit>
+      <trans-unit id="labels.ckeditor.noscalehelp" xml:space="preserve" approved="yes">
+				<source>Skips image processing and uses the original file. Useful for newsletters, PDFs, maximum resolution displays, and SVG graphics. Configure globally via TypoScript or enable per-image.</source>
+			<target state="final">Omite procesarea imaginii și folosește fișierul original. Util pentru buletine informative, PDF-uri, afișaje cu rezoluție maximă și grafică SVG. Configurați global prin TypoScript sau activați per imagine.</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality" xml:space="preserve" approved="yes">
+				<source>Image Quality</source>
+			<target state="final">Calitate imagine</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.none" xml:space="preserve" approved="yes">
+				<source>No Scaling</source>
+			<target state="final">Fără scalare</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.standard" xml:space="preserve" approved="yes">
+				<source>Standard (1.0x)</source>
+				
+			<target state="final">Standard (1.0x)</target><note>Multilingual term - keep as-is unless your language has a more natural equivalent</note></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.retina" xml:space="preserve" approved="yes">
+				<source>Retina (2.0x)</source>
+				
+			<target state="final">Retina (2.0x)</target><note>Multilingual term - keep as-is or transliterate if more natural in your language</note></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.ultra" xml:space="preserve" approved="yes">
+				<source>Ultra (3.0x)</source>
+				
+			<target state="final">Ultra (3.0x)</target><note>Multilingual term - keep as-is unless your language has a more natural equivalent</note></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.print" xml:space="preserve" approved="yes">
+				<source>Print (6.0x)</source>
+			<target state="final">Imprimare (6.0x)</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.low.label" xml:space="preserve" approved="yes">
+				<source>Low</source>
+			<target state="final">Scăzută</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.low.tooltip" xml:space="preserve" approved="yes">
+				<source>Low quality (%sx) - Image may appear blurry</source>
+			<target state="final">Calitate scăzută (%sx) - Imaginea poate apărea neclară</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.standard.label" xml:space="preserve" approved="yes">
+				<source>Standard</source>
+				
+			<target state="final">Standard</target><note>Multilingual term - keep as-is unless your language has a more natural equivalent</note></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.standard.tooltip" xml:space="preserve" approved="yes">
+				<source>Standard quality (%sx) - Sharp on basic displays</source>
+			<target state="final">Calitate standard (%sx) - Clară pe afișaje de bază</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.retina.label" xml:space="preserve" approved="yes">
+				<source>Retina</source>
+				
+			<target state="final">Retina</target><note>Multilingual term - keep as-is or transliterate if more natural in your language</note></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.retina.tooltip" xml:space="preserve" approved="yes">
+				<source>Retina quality (%sx) - Optimal for modern displays</source>
+			<target state="final">Calitate Retina (%sx) - Optimă pentru afișaje moderne</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.ultra.label" xml:space="preserve" approved="yes">
+				<source>Ultra</source>
+				
+			<target state="final">Ultra</target><note>Multilingual term - keep as-is unless your language has a more natural equivalent</note></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.ultra.tooltip" xml:space="preserve" approved="yes">
+				<source>Ultra quality (%sx) - For ultra-high DPI or small print</source>
+			<target state="final">Calitate Ultra (%sx) - Pentru DPI ultra-înalt sau tipărire mică</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.print.label" xml:space="preserve" approved="yes">
+				<source>Print</source>
+			<target state="final">Imprimare</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.print.tooltip" xml:space="preserve" approved="yes">
+				<source>Print quality (%sx) - Suitable for high-quality printing (300 DPI)</source>
+			<target state="final">Calitate imprimare (%sx) - Potrivită pentru tipărire de înaltă calitate (300 DPI)</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.excessive.label" xml:space="preserve" approved="yes">
+				<source>Excessive</source>
+			<target state="final">Excesivă</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.excessive.tooltip" xml:space="preserve" approved="yes">
+				<source>Excessive resolution (%sx) - Unnecessarily high</source>
+			<target state="final">Rezoluție excesivă (%sx) - Inutil de înaltă</target></trans-unit>
+      <trans-unit id="labels.ckeditor.clickBehavior" xml:space="preserve">
+				<source>Click Behavior</source>
+			<target state="translated">Comportament la clic</target></trans-unit>
+      <trans-unit id="labels.ckeditor.clickBehaviorNone" xml:space="preserve">
+				<source>None - image is not clickable</source>
+			<target state="translated">Nimic - imaginea nu este clicabilă</target></trans-unit>
+      <trans-unit id="labels.ckeditor.clickBehaviorEnlarge" xml:space="preserve">
+				<source>Enlarge - opens full-size in lightbox</source>
+			<target state="translated">Mărește - deschide la dimensiune completă în lightbox</target></trans-unit>
+      <trans-unit id="labels.ckeditor.clickBehaviorLink" xml:space="preserve">
+				<source>Link - opens custom URL</source>
+			<target state="translated">Link - deschide URL personalizat</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkUrl" xml:space="preserve">
+				<source>Link URL</source>
+			<target state="translated">URL link</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkTarget" xml:space="preserve">
+				<source>Link Target</source>
+			<target state="translated">Țintă link</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkTitle" xml:space="preserve">
+				<source>Link Title</source>
+			<target state="translated">Titlu link</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkCssClass" xml:space="preserve">
+				<source>Link CSS Class</source>
+			<target state="translated">Clasă CSS link</target></trans-unit>
+      <trans-unit id="labels.ckeditor.browse" xml:space="preserve">
+				<source>Browse...</source>
+			<target state="translated">Răsfoiește...</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkTargetDefault" xml:space="preserve">
+				<source>(default)</source>
+			<target state="translated">(implicit)</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkTargetBlank" xml:space="preserve">
+				<source>New window (_blank)</source>
+			<target state="translated">Fereastră nouă (_blank)</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkTargetTop" xml:space="preserve">
+				<source>Top frame (_top)</source>
+			<target state="translated">Cadru superior (_top)</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkTargetSelf" xml:space="preserve">
+				<source>Same window (_self)</source>
+			<target state="translated">Aceeași fereastră (_self)</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkTargetParent" xml:space="preserve">
+				<source>Parent frame (_parent)</source>
+			<target state="translated">Cadru părinte (_parent)</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkParams" xml:space="preserve">
+				<source>Additional Parameters</source>
+			<target state="translated">Parametri suplimentari</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkParamsPlaceholder" xml:space="preserve">
+				<source>e.g., &amp;L=1&amp;type=123</source>
+			<target state="translated">ex. &amp;L=1&amp;type=123</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.poor.label" xml:space="preserve">
+				<source>Poor</source>
+			<target state="translated">Slabă</target></trans-unit>
+      <trans-unit id="labels.ckeditor.quality.poor.tooltip" xml:space="preserve">
+				<source>Poor quality (%sx) - Image will appear blurry</source>
+			<target state="translated">Calitate slabă (%sx) - Imaginea va apărea neclară</target></trans-unit>
+      <trans-unit id="labels.ckeditor.qualityerror.zerodimensions" xml:space="preserve">
+				<source>Display dimensions cannot be zero.</source>
+			<target state="translated">Dimensiunile de afișare nu pot fi zero.</target></trans-unit>
+      <trans-unit id="labels.ckeditor.qualityinfo.svg" xml:space="preserve">
+				<source>Vector image will not be processed (scales perfectly at any resolution).</source>
+			<target state="translated">Imaginea vectorială nu va fi procesată (se scalează perfect la orice rezoluție).</target></trans-unit>
+      <trans-unit id="labels.ckeditor.scaling" xml:space="preserve">
+				<source>Scaling</source>
+			<target state="translated">Scalare</target></trans-unit>
+      <trans-unit id="labels.ckeditor.caption" xml:space="preserve">
+				<source>Caption</source>
+			<target state="translated">Legendă</target></trans-unit>
+      <trans-unit id="labels.ckeditor.displaywidth" xml:space="preserve">
+				<source>Display width in px</source>
+			<target state="translated">Lățime afișare în px</target></trans-unit>
+      <trans-unit id="labels.ckeditor.displayheight" xml:space="preserve">
+				<source>Display height in px</source>
+			<target state="translated">Înălțime afișare în px</target></trans-unit>
+      <trans-unit id="labels.ckeditor.linkTargetPlaceholder" xml:space="preserve">
+				<source>e.g. _blank, _top, nav_frame</source>
+			<target state="translated">ex. _blank, _top, nav_frame</target></trans-unit>
+      <trans-unit id="labels.ckeditor.imageinsidelinktitle" xml:space="preserve">
+				<source>Image is inside a link</source>
+			<target state="translated">Imaginea se află în interiorul unui link</target></trans-unit>
+      <trans-unit id="labels.ckeditor.imageinsidelinkmessage" xml:space="preserve">
+				<source>Click behavior options are disabled because this image is inside a link that was created around the text. To change link settings, edit the link directly in the editor.</source>
+			<target state="translated">Opțiunile de comportament la clic sunt dezactivate deoarece această imagine se află în interiorul unui link creat în jurul textului. Pentru a modifica setările linkului, editați linkul direct în editor.</target></trans-unit>
+      <trans-unit id="labels.ckeditor.editimage" xml:space="preserve">
+				<source>Edit image</source>
+			<target state="translated">Editare imagine</target></trans-unit>
+      <trans-unit id="labels.ckeditor.togglecaption" xml:space="preserve">
+				<source>Toggle caption</source>
+			<target state="translated">Comutare legendă</target></trans-unit>
+      <trans-unit id="labels.ckeditor.toggleinlineblock" xml:space="preserve">
+				<source>Toggle inline/block</source>
+			<target state="translated">Comutare inline/bloc</target></trans-unit>
+      <trans-unit id="labels.ckeditor.alignleft" xml:space="preserve">
+				<source>Align left</source>
+			<target state="translated">Aliniere la stânga</target></trans-unit>
+      <trans-unit id="labels.ckeditor.aligncenter" xml:space="preserve">
+				<source>Align center</source>
+			<target state="translated">Aliniere la centru</target></trans-unit>
+      <trans-unit id="labels.ckeditor.alignright" xml:space="preserve">
+				<source>Align right</source>
+			<target state="translated">Aliniere la dreapta</target></trans-unit>
+      <trans-unit id="labels.ckeditor.inline" xml:space="preserve">
+				<source>Inline</source>
+			<target state="translated">Inline</target></trans-unit>
+      <trans-unit id="labels.ckeditor.block" xml:space="preserve">
+				<source>Block</source>
+			<target state="translated">Bloc</target></trans-unit>
+      <trans-unit id="labels.ckeditor.selectimage" xml:space="preserve">
+				<source>Select image</source>
+			<target state="translated">Selectare imagine</target></trans-unit>
+      <trans-unit id="labels.ckeditor.imagewidget" xml:space="preserve">
+				<source>image widget</source>
+			<target state="translated">widget imagine</target></trans-unit>
+      <trans-unit id="labels.ckeditor.inlineimagewidget" xml:space="preserve">
+				<source>inline image widget</source>
+			<target state="translated">widget imagine inline</target></trans-unit>
+      <trans-unit id="labels.ckeditor.imagetoolbar" xml:space="preserve">
+				<source>Image toolbar</source>
+			<target state="translated">Bara de instrumente imagine</target></trans-unit>
+      <trans-unit id="labels.ckeditor.enterimagecaption" xml:space="preserve">
+				<source>Enter image caption</source>
+			<target state="translated">Introduceți legenda imaginii</target></trans-unit>
+    </body>
+  </file>
+</xliff>

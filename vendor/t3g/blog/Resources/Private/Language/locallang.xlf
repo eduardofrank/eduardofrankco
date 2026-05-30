@@ -1,0 +1,483 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xliff version="1.0" xmlns:t3="http://typo3.org/schemas/xliff">
+    <file t3:id="1557352034" source-language="en" datatype="plaintext" original="messages" date="2019-05-08T21:47:12Z" product-name="blog">
+        <header/>
+        <body>
+
+            <!-- General -->
+            <trans-unit id="general.message.configuration_error.title" xml:space="preserve">
+                <source>A possible configuration error was detected.</source>
+            </trans-unit>
+            <trans-unit id="general.message.configuration_error.single_no_post" xml:space="preserve">
+                <source>No matching post could be obtained. Make sure that this plugin is only used on a post.</source>
+            </trans-unit>
+
+            <!-- Headline -->
+            <trans-unit id="headline.commentform" xml:space="preserve">
+                <source>Write comment</source>
+            </trans-unit>
+            <trans-unit id="headline.comments" xml:space="preserve">
+                <source>Comments</source>
+            </trans-unit>
+            <trans-unit id="headline.category" xml:space="preserve">
+                <source>Posts of category: %s</source>
+            </trans-unit>
+            <trans-unit id="headline.category.simple" xml:space="preserve">
+                <source>Category</source>
+            </trans-unit>
+            <trans-unit id="headline.categories" xml:space="preserve">
+                <source>Categories</source>
+            </trans-unit>
+            <trans-unit id="headline.archive" xml:space="preserve">
+                <source>Archive</source>
+            </trans-unit>
+            <trans-unit id="headline.recentcomments" xml:space="preserve">
+                <source>Recent comments</source>
+            </trans-unit>
+            <trans-unit id="headline.recentposts" xml:space="preserve">
+                <source>Recent posts</source>
+            </trans-unit>
+            <trans-unit id="headline.author" xml:space="preserve">
+                <source>Posts by %s</source>
+            </trans-unit>
+            <trans-unit id="headline.author.simple" xml:space="preserve">
+                <source>Author</source>
+            </trans-unit>
+            <trans-unit id="headline.authors" xml:space="preserve">
+                <source>Authors</source>
+            </trans-unit>
+            <trans-unit id="headline.tag" xml:space="preserve">
+                <source>Posts tagged with %s</source>
+            </trans-unit>
+            <trans-unit id="headline.tag.simple" xml:space="preserve">
+                <source>Tag</source>
+            </trans-unit>
+            <trans-unit id="headline.tags" xml:space="preserve">
+                <source>Tags</source>
+            </trans-unit>
+            <trans-unit id="headline.rssfeed" xml:space="preserve">
+                <source>RSS-Feeds</source>
+            </trans-unit>
+
+            <!-- Form -->
+            <trans-unit id="form.comment.name" xml:space="preserve">
+                <source>Name</source>
+            </trans-unit>
+            <trans-unit id="form.comment.email" xml:space="preserve">
+                <source>E-Mail</source>
+            </trans-unit>
+            <trans-unit id="form.comment.url" xml:space="preserve">
+                <source>URL</source>
+            </trans-unit>
+            <trans-unit id="form.comment.comment" xml:space="preserve">
+                <source>Comment</source>
+            </trans-unit>
+            <trans-unit id="form.comment.submit" xml:space="preserve">
+                <source>Submit</source>
+            </trans-unit>
+
+            <!-- Message -->
+            <trans-unit id="message.no_comments" xml:space="preserve">
+                <source>No Comments</source>
+            </trans-unit>
+            <trans-unit id="message.comment" xml:space="preserve">
+                <source>%s Comment</source>
+            </trans-unit>
+            <trans-unit id="message.comments" xml:space="preserve">
+                <source>%s Comments</source>
+            </trans-unit>
+            <trans-unit id="message.comments_closed" xml:space="preserve">
+                <source>Comments closed</source>
+            </trans-unit>
+            <trans-unit id="message.addComment.error.title" xml:space="preserve">
+                <source>Comments not active</source>
+            </trans-unit>
+            <trans-unit id="message.addComment.error.text" xml:space="preserve">
+                <source>The comment function is disabled.</source>
+            </trans-unit>
+            <trans-unit id="message.addComment.success.title" xml:space="preserve">
+                <source>Comment added</source>
+            </trans-unit>
+            <trans-unit id="message.addComment.success.text" xml:space="preserve">
+                <source>Your comment was added successfully.</source>
+            </trans-unit>
+            <trans-unit id="message.addComment.moderation.title" xml:space="preserve">
+                <source>Comment added</source>
+            </trans-unit>
+            <trans-unit id="message.addComment.moderation.text" xml:space="preserve">
+                <source>Your comment was added successfully and is now waiting for approval.</source>
+            </trans-unit>
+
+            <!-- Meta -->
+            <trans-unit id="meta.authors.author" xml:space="preserve">
+                <source>Author</source>
+            </trans-unit>
+            <trans-unit id="meta.authors.authors" xml:space="preserve">
+                <source>Authors</source>
+            </trans-unit>
+            <trans-unit id="meta.categories.category" xml:space="preserve">
+                <source>Category</source>
+            </trans-unit>
+            <trans-unit id="meta.categories.categories" xml:space="preserve">
+                <source>Categories</source>
+            </trans-unit>
+            <trans-unit id="meta.tags.tag" xml:space="preserve">
+                <source>Tag</source>
+            </trans-unit>
+            <trans-unit id="meta.tags.tags" xml:space="preserve">
+                <source>Tags</source>
+            </trans-unit>
+            <trans-unit id="meta.published.published" xml:space="preserve">
+                <source>Published</source>
+            </trans-unit>
+            <trans-unit id="meta.comments.comments" xml:space="preserve">
+                <source>Comments</source>
+            </trans-unit>
+            <trans-unit id="meta.comments.has_comment" xml:space="preserve">
+                <source>%s Comment</source>
+            </trans-unit>
+            <trans-unit id="meta.comments.has_comments" xml:space="preserve">
+                <source>%s Comments</source>
+            </trans-unit>
+            <trans-unit id="meta.comments.start_conversation" xml:space="preserve">
+                <source>Start the Conversation</source>
+            </trans-unit>
+            <trans-unit id="meta.comments.join_conversation" xml:space="preserve">
+                <source>Join the Conversation</source>
+            </trans-unit>
+            <trans-unit id="meta.comments.view_conversation" xml:space="preserve">
+                <source>View the Conversation</source>
+            </trans-unit>
+            <trans-unit id="meta.title.listPostsByDate" xml:space="preserve">
+                <source>All blog posts in ###MONTH_NAME### ###YEAR###</source>
+            </trans-unit>
+            <trans-unit id="meta.description.listPostsByDate" xml:space="preserve">
+                <source>All blog posts ordered by date</source>
+            </trans-unit>
+
+            <!-- Author -->
+            <trans-unit id="author.aboutTheAuthor" xml:space="preserve">
+                <source>About the Author</source>
+            </trans-unit>
+            <trans-unit id="author.social.website" xml:space="preserve">
+                <source>Website</source>
+            </trans-unit>
+            <trans-unit id="author.social.twitter" xml:space="preserve">
+                <source>Twitter</source>
+            </trans-unit>
+            <trans-unit id="author.social.instagram" xml:space="preserve">
+                <source>Instagram</source>
+            </trans-unit>
+            <trans-unit id="author.social.linkedin" xml:space="preserve">
+                <source>LinkedIn</source>
+            </trans-unit>
+            <trans-unit id="author.social.xing" xml:space="preserve">
+                <source>Xing</source>
+            </trans-unit>
+            <trans-unit id="author.more.posts" xml:space="preserve">
+                <source>More posts by this author</source>
+            </trans-unit>
+
+            <!-- List -->
+            <trans-unit id="list.no_posts.title" xml:space="preserve">
+                <source>No blog posts</source>
+            </trans-unit>
+            <trans-unit id="list.no_posts.message" xml:space="preserve">
+                <source>This list contains no blog posts.</source>
+            </trans-unit>
+            <trans-unit id="list.backlink.authors" xml:space="preserve">
+                <source>Back to Authors</source>
+            </trans-unit>
+            <trans-unit id="list.show.author" xml:space="preserve">
+                <source>Show Author</source>
+            </trans-unit>
+            <trans-unit id="list.backlink.categories" xml:space="preserve">
+                <source>Back to Categories</source>
+            </trans-unit>
+            <trans-unit id="list.show.category" xml:space="preserve">
+                <source>Show Category</source>
+            </trans-unit>
+            <trans-unit id="list.backlink.tags" xml:space="preserve">
+                <source>Back to Tags</source>
+            </trans-unit>
+            <trans-unit id="list.show.tag" xml:space="preserve">
+                <source>Show Tag</source>
+            </trans-unit>
+            <trans-unit id="list.backlink.archive" xml:space="preserve">
+                <source>Back to Archive</source>
+            </trans-unit>
+            <trans-unit id="list.show.archive" xml:space="preserve">
+                <source>Show Archive</source>
+            </trans-unit>
+
+            <!-- Backend -->
+            <trans-unit id="backend.headline.setup_wizard" xml:space="preserve">
+                <source>SetupWizard</source>
+            </trans-unit>
+            <trans-unit id="backend.headline.posts" xml:space="preserve">
+                <source>Posts</source>
+            </trans-unit>
+            <trans-unit id="backend.headline.comments" xml:space="preserve">
+                <source>Comments</source>
+            </trans-unit>
+            <trans-unit id="backend.lead.blogs" xml:space="preserve">
+                <source>It looks like you have the following blog setups</source>
+            </trans-unit>
+            <trans-unit id="backend.message.noblogs" xml:space="preserve">
+                <source>It looks like no blog setup exists in this instance.</source>
+            </trans-unit>
+            <trans-unit id="backend.lead.posts" xml:space="preserve">
+                <source>The following table shows all the blog posts available in this installation. Use the filters and search to refine the results.</source>
+            </trans-unit>
+            <trans-unit id="backend.message.noposts" xml:space="preserve">
+                <source>Oops, apparently there are no blog posts in this installation.</source>
+            </trans-unit>
+            <trans-unit id="backend.message.nopost" xml:space="preserve">
+                <source>Post not available</source>
+            </trans-unit>
+            <trans-unit id="backend.lead.comments" xml:space="preserve">
+                <source>The following table shows blog comments available in this installation. Use the filters and search to refine the results.</source>
+            </trans-unit>
+            <trans-unit id="backend.message.nocomments" xml:space="preserve">
+                <source>Oops, apparently there are no blog comments in this view.</source>
+            </trans-unit>
+            <trans-unit id="backend.warning" xml:space="preserve">
+                <source>Warning</source>
+            </trans-unit>
+            <trans-unit id="backend.table.blog" xml:space="preserve">
+                <source>Blog</source>
+            </trans-unit>
+            <trans-unit id="backend.table.articles" xml:space="preserve">
+                <source>Articles</source>
+            </trans-unit>
+            <trans-unit id="backend.table.actions" xml:space="preserve">
+                <source>Actions</source>
+            </trans-unit>
+            <trans-unit id="backend.table.title" xml:space="preserve">
+                <source>Title</source>
+            </trans-unit>
+            <trans-unit id="backend.table.author" xml:space="preserve">
+                <source>Authors</source>
+            </trans-unit>
+            <trans-unit id="backend.table.categories" xml:space="preserve">
+                <source>Categories</source>
+            </trans-unit>
+            <trans-unit id="backend.table.tags" xml:space="preserve">
+                <source>Tags</source>
+            </trans-unit>
+            <trans-unit id="backend.table.comment" xml:space="preserve">
+                <source>Comment</source>
+            </trans-unit>
+            <trans-unit id="backend.table.post" xml:space="preserve">
+                <source>Reply to post</source>
+            </trans-unit>
+            <trans-unit id="backend.table.date" xml:space="preserve">
+                <source>Date</source>
+            </trans-unit>
+            <trans-unit id="backend.table.hidden" xml:space="preserve">
+                <source>Hidden</source>
+            </trans-unit>
+            <trans-unit id="backend.table.hidden.yes" xml:space="preserve">
+                <source>Yes</source>
+            </trans-unit>
+            <trans-unit id="backend.table.hidden.no" xml:space="preserve">
+                <source>No</source>
+            </trans-unit>
+            <trans-unit id="backend.comments.filter.all" xml:space="preserve">
+                <source>All</source>
+            </trans-unit>
+            <trans-unit id="backend.comments.filter.pending" xml:space="preserve">
+                <source>Pending</source>
+            </trans-unit>
+            <trans-unit id="backend.comments.filter.approved" xml:space="preserve">
+                <source>Approved</source>
+            </trans-unit>
+            <trans-unit id="backend.comments.filter.declined" xml:space="preserve">
+                <source>Declined</source>
+            </trans-unit>
+            <trans-unit id="backend.comments.filter.deleted" xml:space="preserve">
+                <source>Deleted</source>
+            </trans-unit>
+
+            <!-- Wizard -->
+            <trans-unit id="wizard.button.trigger" xml:space="preserve">
+                <source>Setup a new blog</source>
+            </trans-unit>
+            <trans-unit id="wizard.button.cancel" xml:space="preserve">
+                <source>Cancel</source>
+            </trans-unit>
+            <trans-unit id="wizard.button.setup" xml:space="preserve">
+                <source>Setup</source>
+            </trans-unit>
+            <trans-unit id="wizard.lead" xml:space="preserve">
+                <source>This Wizard will create a blog setup in your tree.</source>
+            </trans-unit>
+            <trans-unit id="wizard.description" xml:space="preserve">
+                <source>After click on the button below the tree will be created. If you see the success message, go to your page tree and maybe reload the tree to see the result.</source>
+            </trans-unit>
+            <trans-unit id="wizard.headline.settings" xml:space="preserve">
+                <source>Settings</source>
+            </trans-unit>
+            <trans-unit id="wizard.label.title" xml:space="preserve">
+                <source>Title of the blog</source>
+            </trans-unit>
+            <trans-unit id="wizard.placeholder.title" xml:space="preserve">
+                <source>The title of your blog</source>
+            </trans-unit>
+
+            <!-- Backend PageLayout -->
+            <trans-unit id="pagelayout.section.authors" xml:space="preserve">
+                <source>Authors</source>
+            </trans-unit>
+            <trans-unit id="pagelayout.section.published" xml:space="preserve">
+                <source>Published</source>
+            </trans-unit>
+            <trans-unit id="pagelayout.section.categories" xml:space="preserve">
+                <source>Categories</source>
+            </trans-unit>
+            <trans-unit id="pagelayout.section.tags" xml:space="preserve">
+                <source>Tags</source>
+            </trans-unit>
+            <trans-unit id="pagelayout.section.featuredimage" xml:space="preserve">
+                <source>Featured Image</source>
+            </trans-unit>
+            <trans-unit id="pagelayout.message.noauthor" xml:space="preserve">
+                <source>No author assigned.</source>
+            </trans-unit>
+            <trans-unit id="pagelayout.message.nofeaturedimage" xml:space="preserve">
+                <source>No featured image assigned.</source>
+            </trans-unit>
+            <trans-unit id="pagelayout.message.notabstractordescription" xml:space="preserve">
+                <source>No abstract or description is added for this post.</source>
+            </trans-unit>
+            <trans-unit id="pagelayout.button.post.edit" xml:space="preserve">
+                <source>Edit Post Meta-Data</source>
+            </trans-unit>
+
+            <!-- Extension Configuration -->
+            <trans-unit id="extensionconfiguration.disablePageLayoutHeader" xml:space="preserve">
+                <source>Disable the page layout header: The page layout header shows additional information about blog posts in the TYPO3 page and list module.</source>
+            </trans-unit>
+            <trans-unit id="extensionconfiguration.enableGravatarProxy" xml:space="preserve">
+                <source>Enables the proxying of gravatar images which means that calls to gravatar.com will be done server side instead of client side.</source>
+            </trans-unit>
+
+            <!-- Feed -->
+            <trans-unit id="feed.title.listPostsByCategory" xml:space="preserve">
+                <source>Category RSS Feed</source>
+            </trans-unit>
+            <trans-unit id="feed.description.listPostsByCategory" xml:space="preserve">
+                <source>Posts by category %s</source>
+            </trans-unit>
+            <trans-unit id="feed.title.listPostsByAuthor" xml:space="preserve">
+                <source>Author RSS Feed</source>
+            </trans-unit>
+            <trans-unit id="feed.description.listPostsByAuthor" xml:space="preserve">
+                <source>Posts by author %s</source>
+            </trans-unit>
+            <trans-unit id="feed.title.listPostsByDate" xml:space="preserve">
+                <source>Archive RSS Feed</source>
+            </trans-unit>
+            <trans-unit id="feed.description.listPostsByDate" xml:space="preserve">
+                <source>Posts by date: %s / %s</source>
+            </trans-unit>
+            <trans-unit id="feed.title.listPostsByTag" xml:space="preserve">
+                <source>Tag RSS Feed</source>
+            </trans-unit>
+            <trans-unit id="feed.description.listPostsByTag" xml:space="preserve">
+                <source>Posts by tag: %s</source>
+            </trans-unit>
+            <trans-unit id="feed.title.listRecentPosts" xml:space="preserve">
+                <source>RSS Feed</source>
+            </trans-unit>
+            <trans-unit id="feed.description.listRecentPosts" xml:space="preserve">
+                <source>Recent posts</source>
+            </trans-unit>
+
+            <!-- Label -->
+            <trans-unit id="label.blog" xml:space="preserve">
+                <source>Blog</source>
+            </trans-unit>
+            <trans-unit id="label.all" xml:space="preserve">
+                <source>All</source>
+            </trans-unit>
+            <trans-unit id="label.choose_blog" xml:space="preserve">
+                <source>Choose blog</source>
+            </trans-unit>
+            <trans-unit id="label.required.field" xml:space="preserve">
+                <source>*</source>
+            </trans-unit>
+            <trans-unit id="label.required.field.explanation" xml:space="preserve">
+                <source>These fields are required</source>
+            </trans-unit>
+
+            <!-- Actions -->
+            <trans-unit id="action.approve" xml:space="preserve">
+                <source>Approve comment</source>
+            </trans-unit>
+            <trans-unit id="action.decline" xml:space="preserve">
+                <source>Decline comment</source>
+            </trans-unit>
+            <trans-unit id="action.delete" xml:space="preserve">
+                <source>Delete comment</source>
+            </trans-unit>
+            <trans-unit id="action.editComment" xml:space="preserve">
+                <source>Edit comment</source>
+            </trans-unit>
+            <trans-unit id="action.multiple.approve" xml:space="preserve">
+                <source>Approve</source>
+            </trans-unit>
+            <trans-unit id="action.multiple.decline" xml:space="preserve">
+                <source>Decline</source>
+            </trans-unit>
+            <trans-unit id="action.multiple.delete" xml:space="preserve">
+                <source>Delete</source>
+            </trans-unit>
+
+            <!-- E-Mails -->
+            <trans-unit id="emails.CommentAddedNotification.subject" xml:space="preserve">
+                <source>A new comment was added to the post: %s</source>
+            </trans-unit>
+            <trans-unit id="email.label.post" xml:space="preserve">
+                <source>Post</source>
+            </trans-unit>
+            <trans-unit id="email.label.date" xml:space="preserve">
+                <source>Date</source>
+            </trans-unit>
+            <trans-unit id="email.label.author" xml:space="preserve">
+                <source>Author</source>
+            </trans-unit>
+            <trans-unit id="email.label.comment" xml:space="preserve">
+                <source>Comment</source>
+            </trans-unit>
+
+            <!-- Widgets -->
+            <trans-unit id="widget.recentcomments.on" xml:space="preserve">
+                <source>on</source>
+            </trans-unit>
+
+            <!-- Pagination -->
+            <trans-unit id="pagination.aria.label" xml:space="preserve">
+                <source>Page navigation</source>
+            </trans-unit>
+            <trans-unit id="pagination.next" xml:space="preserve">
+                <source>Next</source>
+            </trans-unit>
+            <trans-unit id="pagination.previous" xml:space="preserve">
+                <source>Previous</source>
+            </trans-unit>
+            <trans-unit id="pagination.aria.current.page" xml:space="preserve">
+                <source>Current page, page %s</source>
+            </trans-unit>
+            <trans-unit id="pagination.aria.goto.page" xml:space="preserve">
+                <source>Go to page %s</source>
+            </trans-unit>
+            <trans-unit id="pagination.aria.goto.next" xml:space="preserve">
+                <source>Go to next page</source>
+            </trans-unit>
+            <trans-unit id="pagination.aria.goto.previous" xml:space="preserve">
+                <source>Go to previous page</source>
+            </trans-unit>
+        </body>
+    </file>
+</xliff>

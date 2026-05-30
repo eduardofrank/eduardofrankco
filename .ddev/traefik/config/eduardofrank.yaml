@@ -1,0 +1,98 @@
+#ddev-generated
+# If you remove the ddev-generated line above you
+# are responsible for maintaining this file. DDEV will not then
+# update it, for example if you add `additional_hostnames`, etc.
+
+http:
+  routers:
+    eduardofrank-web-80-http:
+      entrypoints:
+        - http-80
+      rule: HostRegexp(`^eduardofrank\.ddev\.site$`)
+      
+      service: "eduardofrank-web-80"
+      tls: false
+      # middlewares:
+      #   - "eduardofrank-redirectHttps"
+    eduardofrank-web-8025-http:
+      entrypoints:
+        - http-8025
+      rule: HostRegexp(`^eduardofrank\.ddev\.site$`)
+      
+      service: "eduardofrank-web-8025"
+      tls: false
+      # middlewares:
+      #   - "eduardofrank-redirectHttps"
+    eduardofrank-xhgui-80-http:
+      entrypoints:
+        - http-8143
+      rule: HostRegexp(`^eduardofrank\.ddev\.site$`)
+      
+      service: "eduardofrank-xhgui-80"
+      tls: false
+      # middlewares:
+      #   - "eduardofrank-redirectHttps"
+    
+    
+    
+    eduardofrank-web-80-https:
+      entrypoints:
+        - http-443
+      rule: HostRegexp(`^eduardofrank\.ddev\.site$`)
+      
+      service: "eduardofrank-web-80"
+      
+      tls: true
+      
+    eduardofrank-web-8025-https:
+      entrypoints:
+        - http-8026
+      rule: HostRegexp(`^eduardofrank\.ddev\.site$`)
+      
+      service: "eduardofrank-web-8025"
+      
+      tls: true
+      
+    
+    eduardofrank-xhgui-80-https:
+      entrypoints:
+        - http-8142
+      rule: HostRegexp(`^eduardofrank\.ddev\.site$`)
+      
+      service: "eduardofrank-xhgui-80"
+      
+      tls: true
+      
+    
+
+  middlewares:
+    eduardofrank-redirectHttps:
+      redirectScheme:
+        scheme: https
+        permanent: true
+
+  services:
+    eduardofrank-web-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-eduardofrank-web:80
+        
+    eduardofrank-web-8025:
+      loadbalancer:
+        servers:
+          - url: http://ddev-eduardofrank-web:8025
+        
+    
+    
+    eduardofrank-xhgui-80:
+      loadbalancer:
+        servers:
+          - url: http://ddev-eduardofrank-xhgui:80
+        
+    
+    
+
+tls:
+  certificates:
+    - certFile: /mnt/ddev-global-cache/traefik/certs/eduardofrank.crt
+      keyFile: /mnt/ddev-global-cache/traefik/certs/eduardofrank.key

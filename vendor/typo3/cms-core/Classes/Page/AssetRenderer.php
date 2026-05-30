@@ -1,0 +1,180 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Core\Page;
+
+use Psr\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use TYPO3\CMS\Core\Page\Event\BeforeJavaScriptsRenderingEvent;
+use TYPO3\CMS\Core\Page\Event\BeforeStylesheetsRenderingEvent;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\ConsumableNonce;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\Directive;
+use TYPO3\CMS\Core\Security\ContentSecurityPolicy\DirectiveHashCollection;
+use TYPO3\CMS\Core\SystemResource\Publishing\SystemResourcePublisherInterface;
+use TYPO3\CMS\Core\SystemResource\SystemResourceFactory;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\Utility\PathUtility;
+
+/**
+ * @internal The AssetRenderer is used for the asset rendering and is not public API
+ */
+#[Autoconfigure(public: true)]
+readonly class AssetRenderer
+{
+    public function __construct(
+        protected AssetCollector $assetCollector,
+        protected EventDispatcherInterface $eventDispatcher,
+        protected SystemResourcePublisherInterface $resourcePublisher,
+        protected SystemResourceFactory $systemResourceFactory,
+        protected ResourceHashCollection $resourceHashCollection,
+        protected DirectiveHashCollection $directiveHashCollection,
+    ) {}
+
+    public function renderInlineJavaScript($priority = false, ?ConsumableNonce $nonce = null): string
+    {
+        $this->eventDispatcher->dispatch(
+            new BeforeJavaScriptsRenderingEvent($this->assetCollector, true, $priority)
+        );
+
+        $template = '<script%attributes%>%source%</script>';
+        $assets = $this->assetCollector->getInlineJavaScripts($priority);
+        return $this->render($assets, $template, true, Directive::ScriptSrcElem, $nonce);
+    }
+
+    public function renderJavaScript($priority = false, ?ConsumableNonce $nonce = null): string
+    {
+        $this->eventDispatcher->dispatch(
+            new BeforeJavaScriptsRenderingEvent($this->assetCollector, false, $priority)
+        );
+
+        $template = '<script%attributes%></script>';
+        $assets = $this->assetCollector->getJavaScripts($priority);
+        foreach ($assets as &$assetData) {
+            if (isset($assetData['options']['useNonce'])) {
+                trigger_error(
+                    'The option key "useNonce" for assets is deprecated, use "csp" instead.',
+                    E_USER_DEPRECATED
+                );
+            }
+            // Collect CSP hash from original source path before URL transformation
+            if (!empty($assetData['options']['csp']) || !empty($assetData['options']['useNonce'])) {
+                $integrity = $assetData['attributes']['integrity'] ?? '';
+                if ($integrity !== '') {
+                    $this->directiveHashCollection->addGenericHashValue(Directive::ScriptSrcElem, $integrity);
+                } else {
+                    $this->directiveHashCollection->addResourceHash(Directive::ScriptSrcElem, $assetData['source']);
+                }
+            }
+            $assetData['source'] = $this->getAbsoluteWebPath($assetData['source']);
+            $assetData['attributes']['src'] = $assetData['source'];
+        }
+        return $this->render($assets, $template, false, Directive::ScriptSrcElem, $nonce);
+    }
+
+    public function renderInlineStyleSheets($priority = false, ?ConsumableNonce $nonce = null): string
+    {
+        $this->eventDispatcher->dispatch(
+            new BeforeStylesheetsRenderingEvent($this->assetCollector, true, $priority)
+        );
+
+        $template = '<style%attributes%>%source%</style>';
+        $assets = $this->assetCollector->getInlineStyleSheets($priority);
+        return $this->render($assets, $template, true, Directive::StyleSrcElem, $nonce);
+    }
+
+    public function renderStyleSheets(bool $priority = false, string $endingSlash = '', ?ConsumableNonce $nonce = null): string
+    {
+        $this->eventDispatcher->dispatch(
+            new BeforeStylesheetsRenderingEvent($this->assetCollector, false, $priority)
+        );
+
+        $template = '<link%attributes% ' . $endingSlash . '>';
+        $assets = $this->assetCollector->getStyleSheets($priority);
+        foreach ($assets as &$assetData) {
+            $originalSource = $assetData['source'];
+            if (isset($assetData['options']['useNonce'])) {
+                trigger_error(
+                    'The option key "useNonce" for assets is deprecated, use "csp" instead.',
+                    E_USER_DEPRECATED
+                );
+            }
+            // Collect CSP hash from original source path before URL transformation
+            if (!empty($assetData['options']['csp']) || !empty($assetData['options']['useNonce'])) {
+                $integrity = $assetData['attributes']['integrity'] ?? '';
+                if ($integrity !== '') {
+                    $this->directiveHashCollection->addGenericHashValue(Directive::StyleSrcElem, $integrity);
+                } else {
+                    $this->directiveHashCollection->addResourceHash(Directive::StyleSrcElem, $assetData['source']);
+                }
+            }
+            $assetData['source'] = $this->getAbsoluteWebPath($assetData['source']);
+            $assetData['attributes']['href'] = $assetData['source'];
+            $assetData['attributes']['rel'] = $assetData['attributes']['rel'] ?? 'stylesheet';
+            if (($assetData['attributes']['integrity'] ?? '') === ResourceHashCollection::AUTO) {
+                $hash = $this->resourceHashCollection->fetchResourceHash($originalSource)?->export() ?? '';
+                if ($hash !== '') {
+                    $assetData['attributes']['integrity'] = $hash;
+                    if (empty($assetData['attributes']['crossorigin']) && PathUtility::hasProtocolAndScheme($originalSource)) {
+                        $assetData['attributes']['crossorigin'] = 'anonymous';
+                    }
+                } else {
+                    unset($assetData['attributes']['integrity']);
+                }
+            }
+        }
+        return $this->render($assets, $template, false, Directive::StyleSrcElem, $nonce);
+    }
+
+    protected function render(
+        array $assets,
+        string $template,
+        bool $isInline,
+        Directive $directive,
+        ?ConsumableNonce $nonce = null
+    ): string {
+        $results = [];
+        foreach ($assets as $assetData) {
+            $attributes = $assetData['attributes'];
+            if (isset($assetData['options']['useNonce'])) {
+                trigger_error(
+                    'The option key "useNonce" for assets is deprecated, use "csp" instead.',
+                    E_USER_DEPRECATED
+                );
+            }
+            $useCsp = !empty($assetData['options']['csp']) || !empty($assetData['options']['useNonce']);
+            if ($isInline && $useCsp) {
+                $this->directiveHashCollection->addInlineHash($directive, $assetData['source']);
+            }
+            if ($nonce !== null && $useCsp) {
+                $attributes['nonce'] = $isInline ? $nonce->consumeInline($directive) : $nonce->consumeStatic($directive);
+            }
+            $attributesString = count($attributes) ? ' ' . GeneralUtility::implodeAttributes($attributes, true) : '';
+            $results[] = str_replace(
+                ['%attributes%', '%source%'],
+                [$attributesString, $assetData['source']],
+                $template
+            );
+        }
+        return implode(LF, $results);
+    }
+
+    private function getAbsoluteWebPath(string $file): string
+    {
+        $resource = $this->systemResourceFactory->createPublicResource($file);
+        return (string)$this->resourcePublisher->generateUri($resource, null);
+    }
+}

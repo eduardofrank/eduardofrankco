@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" target-language="de" datatype="plaintext" original="messages" date="2014-12-27T14:55:41Z" product-name="parsedown_extra">
+		<header/>
+		<body>
+			<trans-unit id="tx_parsedownextra_newcontentelementwizard_parsedown.title">
+				<source>Parsedown (Markdown)</source>
+				<target>Parsedown (Markdown)</target>
+			</trans-unit>
+			<trans-unit id="tx_parsedownextra_newcontentelementwizard_parsedown.description">
+				<source>Display Markdown, Diagrams and Charts from textarea or selected file with Parsedown.</source>
+				<target>Zeige Markdown, Diagramme und Charts aus einem Textfeld oder einer ausgewählten Datei mit Parsedown an.</target>
+			</trans-unit>
+		</body>
+	</file>
+</xliff>

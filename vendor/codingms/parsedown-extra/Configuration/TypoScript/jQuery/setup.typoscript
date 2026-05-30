@@ -1,0 +1,6 @@
+page {
+	includeJSFooterlibs {
+		jQuery = EXT:parsedown_extra/Resources/Public/Contrib/jQuery/jquery.min.js
+		jQuery.forceOnTop = 1
+	}
+}

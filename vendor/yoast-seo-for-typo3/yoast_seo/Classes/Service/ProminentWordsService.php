@@ -1,0 +1,169 @@
+<?php
+
+/**
+ * This file is part of the "yoast_seo" extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
+declare(strict_types=1);
+
+namespace YoastSeoForTypo3\YoastSeo\Service;
+
+use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\QueryBuilder;
+use YoastSeoForTypo3\YoastSeo\Constants\TableNames;
+
+class ProminentWordsService
+{
+    protected int $uid;
+    protected int $pid;
+    protected string $table;
+    protected int $languageId;
+
+    public function __construct(
+        protected ConnectionPool $connectionPool,
+        protected SiteService $siteService
+    ) {}
+
+    /**
+     * @param array<string, int|string> $prominentWords
+     */
+    public function saveProminentWords(
+        int $uid,
+        ?int $pid,
+        string $table,
+        int $languageId,
+        array $prominentWords
+    ): void {
+        $this->uid = $uid;
+        $this->pid = $pid ?? $this->getPidForRecord($uid, $table);
+        $this->table = $table;
+        $this->languageId = $languageId;
+
+        $wordsToDelete = [];
+
+        $oldWords = $this->getOldWords();
+        foreach ($oldWords as $oldWord) {
+            if (!isset($prominentWords[$oldWord['stem']])) {
+                $wordsToDelete[] = $oldWord['uid'];
+                continue;
+            }
+
+            $this->updateIfWeightHasChanged($oldWord, (int)$prominentWords[$oldWord['stem']]);
+            unset($prominentWords[$oldWord['stem']]);
+        }
+
+        $this->deleteProminentWords($wordsToDelete);
+        $this->createNewWords($prominentWords);
+    }
+
+    /**
+     * @param array{uid: int, weight: int} $oldWord
+     */
+    protected function updateIfWeightHasChanged(array $oldWord, int $weight): void
+    {
+        if ((int)$oldWord['weight'] === $weight) {
+            return;
+        }
+        $queryBuilder = $this->getQueryBuilder();
+        $queryBuilder->update(TableNames::PROMINENT_WORD)
+            ->set('weight', $weight)
+            ->where(
+                $queryBuilder->expr()->eq('uid', $oldWord['uid'])
+            )
+            ->setMaxResults(1)
+            ->executeStatement();
+    }
+
+    /**
+     * @param int[] $wordsToDelete
+     */
+    protected function deleteProminentWords(array $wordsToDelete): void
+    {
+        if ($wordsToDelete === []) {
+            return;
+        }
+
+        $queryBuilder = $this->getQueryBuilder();
+        $queryBuilder->delete(TableNames::PROMINENT_WORD)
+            ->where(
+                $queryBuilder->expr()->in(
+                    'uid',
+                    $queryBuilder->createNamedParameter($wordsToDelete, Connection::PARAM_INT_ARRAY)
+                )
+            )
+            ->executeStatement();
+    }
+
+    /**
+     * @param array<string, int|string> $prominentWords
+     */
+    protected function createNewWords(array $prominentWords): void
+    {
+        if ($prominentWords === []) {
+            return;
+        }
+
+        $site = $this->getSiteRootPageId();
+        $pid = $this->table === TableNames::PAGES ? $this->uid : $this->pid;
+
+        $rows = [];
+        foreach ($prominentWords as $word => $weight) {
+            $rows[] = [
+                $pid,
+                $this->languageId,
+                $this->uid,
+                $site,
+                $this->table,
+                (string)$word,
+                (int)$weight,
+            ];
+        }
+
+        $this->connectionPool->getConnectionForTable(TableNames::PROMINENT_WORD)->bulkInsert(
+            TableNames::PROMINENT_WORD,
+            $rows,
+            ['pid', 'sys_language_uid', 'uid_foreign', 'site', 'tablenames', 'stem', 'weight']
+        );
+    }
+
+    /**
+     * @return array<array{uid: int, stem: string, weight: int}>
+     */
+    protected function getOldWords(): array
+    {
+        $queryBuilder = $this->getQueryBuilder();
+        $queryBuilder->select('uid', 'stem', 'weight')
+            ->from(TableNames::PROMINENT_WORD)
+            ->where(
+                $queryBuilder->expr()->eq('uid_foreign', $this->uid),
+                $queryBuilder->expr()->eq('tablenames', $queryBuilder->createNamedParameter($this->table)),
+                $queryBuilder->expr()->eq('sys_language_uid', $this->languageId)
+            );
+        /** @var array<array{uid: int, stem: string, weight: int}> $oldWords */
+        $oldWords = $queryBuilder->executeQuery()->fetchAllAssociative();
+        return $oldWords;
+    }
+
+    protected function getPidForRecord(int $uid, string $table): int
+    {
+        $connection = $this->connectionPool->getConnectionForTable($table);
+        $record = $connection->select(['pid'], $table, ['uid' => $uid])->fetchAssociative();
+        return (int)($record['pid'] ?? 0);
+    }
+
+    protected function getSiteRootPageId(): int
+    {
+        return $this->siteService->getSiteRootPageId(
+            $this->table === TableNames::PAGES ? $this->uid : $this->pid
+        );
+    }
+
+    protected function getQueryBuilder(): QueryBuilder
+    {
+        return $this->connectionPool->getQueryBuilderForTable(TableNames::PROMINENT_WORD);
+    }
+}

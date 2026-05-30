@@ -1,0 +1,148 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+/*
+ * Inspired by and partially taken from the Neos.Form package (www.neos.io)
+ */
+
+namespace TYPO3\CMS\Form\Domain\Factory;
+
+use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Form\Domain\Configuration\ConfigurationService;
+use TYPO3\CMS\Form\Domain\Exception\IdentifierNotValidException;
+use TYPO3\CMS\Form\Domain\Exception\RenderingException;
+use TYPO3\CMS\Form\Domain\Exception\UnknownCompositRenderableException;
+use TYPO3\CMS\Form\Domain\Model\FormDefinition;
+use TYPO3\CMS\Form\Domain\Model\FormElements\AbstractSection;
+use TYPO3\CMS\Form\Domain\Model\Renderable\CompositeRenderableInterface;
+use TYPO3\CMS\Form\Event\BeforeRenderableIsAddedToFormEvent;
+
+/**
+ * A factory that creates a FormDefinition from an array
+ *
+ * Scope: frontend / backend
+ */
+#[Autoconfigure(public: true, shared: false)]
+class ArrayFormFactory extends AbstractFormFactory
+{
+    /**
+     * Build a form definition, depending on some configuration.
+     *
+     * @throws RenderingException
+     * @internal
+     */
+    public function build(
+        array $configuration,
+        ?string $prototypeName = null,
+        ?ServerRequestInterface $request = null
+    ): FormDefinition {
+        if (empty($prototypeName)) {
+            $prototypeName = $configuration['prototypeName'] ?? 'standard';
+        }
+        $persistenceIdentifier = $configuration['persistenceIdentifier'] ?? null;
+
+        // Get prototype configuration once and reuse it
+        $prototypeConfiguration = GeneralUtility::makeInstance(ConfigurationService::class)
+            ->getPrototypeConfiguration($prototypeName);
+
+        // Get RTE property paths for proper sanitization
+        $rtePropertyPaths = $this->getFormDefinitionConversionService()->extractRtePropertyPaths($prototypeConfiguration);
+
+        $configuration = $this->getFormDefinitionConversionService()->sanitizeHtml($configuration, $rtePropertyPaths);
+
+        if ($configuration['invalid'] ?? false) {
+            throw new RenderingException($configuration['label'], 1529710560);
+        }
+
+        $form = GeneralUtility::makeInstance(
+            FormDefinition::class,
+            $configuration['identifier'],
+            $prototypeConfiguration,
+            'Form',
+            $persistenceIdentifier
+        );
+        // Set renderingOptions before processing renderables, so that options
+        // like 'previewMode' are available during initializeFormElement().
+        if (isset($configuration['renderingOptions'])) {
+            foreach ($configuration['renderingOptions'] as $key => $value) {
+                $form->setRenderingOption($key, $value);
+            }
+        }
+        if (isset($configuration['renderables'])) {
+            foreach ($configuration['renderables'] as $pageConfiguration) {
+                $this->addNestedRenderable($pageConfiguration, $form, $request);
+            }
+        }
+
+        unset($configuration['persistenceIdentifier']);
+        unset($configuration['prototypeName']);
+        unset($configuration['renderables']);
+        unset($configuration['type']);
+        unset($configuration['identifier']);
+        $form->setOptions($configuration);
+        $form->setRequest($request);
+
+        return $this->triggerFormBuildingFinished($form);
+    }
+
+    /**
+     * Add form elements to the $parentRenderable
+     *
+     * @return mixed
+     * @throws IdentifierNotValidException
+     * @throws UnknownCompositRenderableException
+     */
+    protected function addNestedRenderable(
+        array $nestedRenderableConfiguration,
+        CompositeRenderableInterface $parentRenderable,
+        ?ServerRequestInterface $request = null
+    ) {
+        if (!isset($nestedRenderableConfiguration['identifier'])) {
+            throw new IdentifierNotValidException('Identifier not set.', 1329289436);
+        }
+        if ($parentRenderable instanceof FormDefinition) {
+            $renderable = $parentRenderable->createPage($nestedRenderableConfiguration['identifier'], $nestedRenderableConfiguration['type']);
+        } elseif ($parentRenderable instanceof AbstractSection) {
+            $renderable = $parentRenderable->createElement($nestedRenderableConfiguration['identifier'], $nestedRenderableConfiguration['type']);
+            if ($request !== null && method_exists($renderable, 'setRequest')) {
+                $renderable->setRequest($request);
+            }
+        } else {
+            throw new UnknownCompositRenderableException('Unknown composit renderable "' . get_class($parentRenderable) . '"', 1479593622);
+        }
+
+        $childRenderables = is_array($nestedRenderableConfiguration['renderables'] ?? null)
+            ? $nestedRenderableConfiguration['renderables']
+            : [];
+
+        unset($nestedRenderableConfiguration['type']);
+        unset($nestedRenderableConfiguration['identifier']);
+        unset($nestedRenderableConfiguration['renderables']);
+
+        $renderable->setOptions($nestedRenderableConfiguration);
+
+        if ($renderable instanceof CompositeRenderableInterface) {
+            foreach ($childRenderables as $elementConfiguration) {
+                $this->addNestedRenderable($elementConfiguration, $renderable, $request);
+            }
+        }
+
+        return $this->eventDispatcher->dispatch(new BeforeRenderableIsAddedToFormEvent($renderable))->renderable;
+    }
+}

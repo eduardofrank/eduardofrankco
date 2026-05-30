@@ -1,0 +1,515 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Core\Cache\Backend;
+
+use TYPO3\CMS\Core\Cache\Exception;
+use TYPO3\CMS\Core\Utility\StringUtility;
+
+/**
+ * A caching backend which stores cache entries by using Redis with phpredis
+ * PHP module. Redis is a noSQL database with very good scaling characteristics
+ * in proportion to the amount of entries and data size.
+ *
+ * @see https://redis.io/
+ * @see https://github.com/phpredis/phpredis
+ */
+class RedisBackend extends AbstractBackend implements TaggableBackendInterface
+{
+    /**
+     * Faked unlimited lifetime = 31536000 (1 Year).
+     * In redis an entry does not have a lifetime by default (it's not "volatile").
+     * Entries can be made volatile either with EXPIRE after it has been SET,
+     * or with SETEX, which is a combined SET and EXPIRE command.
+     * But an entry can not be made "unvolatile" again. To set a volatile entry to
+     * not volatile again, it must be DELeted and SET without a following EXPIRE.
+     * To save these additional calls on every set(),
+     * we just make every entry volatile and treat a high number as "unlimited"
+     *
+     * @see https://redis.io/commands/expire
+     */
+    protected const FAKED_UNLIMITED_LIFETIME = 31536000;
+
+    /**
+     * Key prefix for identifier->data entries
+     */
+    protected const IDENTIFIER_DATA_PREFIX = 'identData:';
+
+    /**
+     * Key prefix for identifier->tags sets
+     */
+    protected const IDENTIFIER_TAGS_PREFIX = 'identTags:';
+
+    /**
+     * Key prefix for tag->identifiers sets
+     */
+    protected const TAG_IDENTIFIERS_PREFIX = 'tagIdents:';
+
+    protected \Redis $redis;
+
+    /**
+     * Indicates whether the server is connected
+     */
+    protected bool $connected = false;
+
+    /**
+     * Persistent connection
+     */
+    protected bool $persistentConnection = false;
+
+    /**
+     * Hostname / IP of the Redis server, defaults to 127.0.0.1.
+     */
+    protected string $hostname = '127.0.0.1';
+
+    /**
+     * Port of the Redis server, defaults to 6379
+     */
+    protected int $port = 6379;
+
+    /**
+     * Number of selected database, defaults to 0
+     */
+    protected int $database = 0;
+
+    /**
+     * Username for authentication
+     */
+    protected ?string $username = null;
+
+    /**
+     * Password for authentication
+     */
+    protected ?string $password = null;
+
+    /**
+     * Indicates whether data is compressed or not (requires php zlib)
+     */
+    protected bool $compression = false;
+
+    /**
+     * -1 to 9, indicates zlib compression level: -1 = default level 6, 0 = no compression, 9 maximum compression
+     */
+    protected int $compressionLevel = -1;
+
+    /**
+     * limit in seconds (default is 0 meaning unlimited)
+     */
+    protected int $connectionTimeout = 0;
+
+    /**
+     * Used as prefix for all Redis keys/identifiers
+     */
+    protected string $keyPrefix = '';
+
+    public function __construct(array $options = [])
+    {
+        if (!extension_loaded('redis')) {
+            throw new Exception('The PHP extension "redis" must be installed and loaded in order to use the redis backend.', 1279462933);
+        }
+        parent::__construct($options);
+    }
+
+    public function initializeObject(): void
+    {
+        $this->redis = new \Redis();
+        try {
+            if ($this->persistentConnection) {
+                $this->connected = $this->redis->pconnect($this->hostname, $this->port, $this->connectionTimeout, (string)$this->database);
+            } else {
+                $this->connected = $this->redis->connect($this->hostname, $this->port, $this->connectionTimeout);
+            }
+        } catch (\Exception $e) {
+            $this->logger->alert('Could not connect to redis server.', ['exception' => $e]);
+        }
+        if ($this->connected) {
+            $authentication = $this->getAuthentication();
+            if ($authentication !== null) {
+                $success = $this->redis->auth($this->getAuthentication());
+                if (!$success) {
+                    throw new Exception('Authentication to Redis failed”.', 1279765134);
+                }
+            }
+            if ($this->database >= 0) {
+                $success = $this->redis->select($this->database);
+                if (!$success) {
+                    throw new Exception('The given database "' . $this->database . '" could not be selected.', 1279765144);
+                }
+            }
+        }
+    }
+
+    protected function setPersistentConnection(bool $persistentConnection): void
+    {
+        $this->persistentConnection = $persistentConnection;
+    }
+
+    protected function setHostname(string $hostname): void
+    {
+        $this->hostname = $hostname;
+    }
+
+    protected function setPort(int $port): void
+    {
+        $this->port = $port;
+    }
+
+    protected function setDatabase(int $database): void
+    {
+        if ($database < 0) {
+            throw new \InvalidArgumentException('The specified database "' . $database . '" must be greater or equal than zero.', 1279763534);
+        }
+        $this->database = $database;
+    }
+
+    protected function setUsername(string $username): void
+    {
+        $this->username = $username;
+    }
+
+    /**
+     * Setter for authentication password
+     *
+     * @todo: Change signature to `setPassword(string $password)` in TYPO3 v15 as breaking change.
+     */
+    protected function setPassword(#[\SensitiveParameter] array|string $password): void
+    {
+        // @deprecated Remove complete if-condition block with TYPO3 v15.
+        if (is_array($password)) {
+            $this->setAuthenticationFromWorkaroundPasswordArray($password);
+            return;
+        }
+        $this->password = $password;
+    }
+
+    protected function setCompression(bool $compression): void
+    {
+        $this->compression = $compression;
+    }
+
+    /**
+     * Set data compression level.
+     * If compression is enabled and this is not set,
+     * gzcompress default level will be used.
+     *
+     * @param int $compressionLevel -1 to 9: Compression level
+     */
+    protected function setCompressionLevel(int $compressionLevel): void
+    {
+        if ($compressionLevel >= -1 && $compressionLevel <= 9) {
+            $this->compressionLevel = $compressionLevel;
+        } else {
+            throw new \InvalidArgumentException('The specified compression level must be an integer between -1 and 9.', 1289679155);
+        }
+    }
+
+    /**
+     * Set connection timeout.
+     * This value in seconds is used as a maximum number
+     * of seconds to wait if a connection can be established.
+     *
+     * @param int $connectionTimeout limit in seconds, a value greater or equal than 0
+     */
+    protected function setConnectionTimeout(int $connectionTimeout): void
+    {
+        if ($connectionTimeout < 0) {
+            throw new \InvalidArgumentException('The specified connection timeout "' . $connectionTimeout . '" must be greater or equal than zero.', 1487849326);
+        }
+
+        $this->connectionTimeout = $connectionTimeout;
+    }
+
+    protected function setKeyPrefix(string $keyPrefix): void
+    {
+        $this->keyPrefix = $keyPrefix;
+    }
+
+    /**
+     * Save data in the cache
+     *
+     * Scales O(1) with number of cache entries
+     * Scales O(n) with number of tags
+     */
+    public function set(string $entryIdentifier, string $data, array $tags = [], ?int $lifetime = null): void
+    {
+        $lifetime ??= $this->defaultLifetime;
+        if ($lifetime < 0) {
+            throw new \InvalidArgumentException('The specified lifetime "' . $lifetime . '" must be greater or equal than zero.', 1279487573);
+        }
+        if ($this->connected) {
+            $expiration = $lifetime === 0 ? self::FAKED_UNLIMITED_LIFETIME : $lifetime;
+            if ($this->compression) {
+                $data = gzcompress($data, $this->compressionLevel);
+            }
+            $this->redis->setex($this->getDataIdentifier($entryIdentifier), $expiration, $data);
+            $addTags = $tags;
+            $removeTags = [];
+            $existingTags = $this->redis->sMembers($this->getTagsIdentifier($entryIdentifier));
+            if (!empty($existingTags)) {
+                $addTags = array_diff($tags, $existingTags);
+                $removeTags = array_diff($existingTags, $tags);
+            }
+            if (!empty($removeTags) || !empty($addTags)) {
+                $queue = $this->redis->multi(\Redis::PIPELINE);
+                foreach ($removeTags as $tag) {
+                    $queue->sRem($this->getTagsIdentifier($entryIdentifier), $tag);
+                    $queue->sRem($this->getTagIdentifier($tag), $entryIdentifier);
+                }
+                foreach ($addTags as $tag) {
+                    $queue->sAdd($this->getTagsIdentifier($entryIdentifier), $tag);
+                    $queue->sAdd($this->getTagIdentifier($tag), $entryIdentifier);
+                }
+                $queue->exec();
+            }
+        }
+    }
+
+    /**
+     * Loads data from the cache.
+     *
+     * Scales O(1) with number of cache entries
+     */
+    public function get(string $entryIdentifier): mixed
+    {
+        $storedEntry = false;
+        if ($this->connected) {
+            $storedEntry = $this->redis->get($this->getDataIdentifier($entryIdentifier));
+        }
+        if ($this->compression && (string)$storedEntry !== '') {
+            return gzuncompress((string)$storedEntry);
+        }
+        return $storedEntry;
+    }
+
+    /**
+     * Checks if a cache entry with the specified identifier exists.
+     *
+     * Scales O(1) with number of cache entries
+     */
+    public function has(string $entryIdentifier): bool
+    {
+        return $this->connected && $this->redis->exists($this->getDataIdentifier($entryIdentifier));
+    }
+
+    /**
+     * Removes all cache entries matching the specified identifier.
+     *
+     * Scales O(1) with number of cache entries
+     * Scales O(n) with number of tags
+     */
+    public function remove(string $entryIdentifier): bool
+    {
+        if (!$this->connected) {
+            return false;
+        }
+        if (!$this->redis->exists($this->getDataIdentifier($entryIdentifier))) {
+            return false;
+        }
+        $assignedTags = $this->redis->sMembers($this->getTagsIdentifier($entryIdentifier));
+        $queue = $this->redis->multi(\Redis::PIPELINE);
+        foreach ($assignedTags as $tag) {
+            $queue->sRem($this->getTagIdentifier($tag), $entryIdentifier);
+        }
+        $queue->del($this->getDataIdentifier($entryIdentifier), $this->getTagsIdentifier($entryIdentifier));
+        $queue->exec();
+        return true;
+    }
+
+    /**
+     * Finds and returns all cache entry identifiers which are tagged by the specified tag.
+     *
+     * Scales O(1) with number of cache entries
+     * Scales O(n) with number of tag entries
+     */
+    public function findIdentifiersByTag(string $tag): array
+    {
+        if (!$this->connected) {
+            return [];
+        }
+        return $this->redis->sMembers($this->getTagIdentifier($tag));
+    }
+
+    public function flush(): void
+    {
+        if (!$this->connected) {
+            return;
+        }
+        // unless we have a key prefix all data can be flushed
+        if ($this->keyPrefix === '') {
+            $this->redis->flushDB();
+            return;
+        }
+        $keys = $this->redis->keys($this->keyPrefix . '*');
+        $queue = $this->redis->multi();
+        $queue->del($keys);
+        $queue->exec();
+    }
+
+    /**
+     * Removes all cache entries of this cache which are tagged with the specified tag.
+     *
+     * Scales O(1) with number of cache entries
+     * Scales O(n^2) with number of tag entries
+     */
+    public function flushByTag(string $tag): void
+    {
+        if (!$this->connected) {
+            return;
+        }
+        $identifiers = $this->redis->sMembers($this->getTagIdentifier($tag));
+        if (!empty($identifiers)) {
+            $this->removeIdentifierEntriesAndRelations($identifiers, [$tag]);
+        }
+    }
+
+    public function flushByTags(array $tags): void
+    {
+        array_walk($tags, $this->flushByTag(...));
+    }
+
+    /**
+     * With the current internal structure, only the identifier to data entries
+     * have a redis internal lifetime. If an entry expires, attached
+     * identifier to tags and tag to identifiers entries will be left over.
+     * This method finds those entries and cleans them up.
+     *
+     * Scales O(n*m) with number of cache entries (n) and number of tags (m)
+     */
+    public function collectGarbage(): void
+    {
+        $identifierToTagsKeys = $this->redis->keys($this->getTagsIdentifier('*'));
+        foreach ($identifierToTagsKeys as $identifierToTagsKey) {
+            [, $identifier] = explode(':', $identifierToTagsKey);
+            // Check if the data entry still exists
+            if (!$this->redis->exists($this->getDataIdentifier($identifier))) {
+                $tagsToRemoveIdentifierFrom = $this->redis->sMembers($identifierToTagsKey);
+                $queue = $this->redis->multi(\Redis::PIPELINE);
+                $queue->del($identifierToTagsKey);
+                foreach ($tagsToRemoveIdentifierFrom as $tag) {
+                    $queue->sRem($this->getTagIdentifier($tag), $identifier);
+                }
+                $queue->exec();
+            }
+        }
+    }
+
+    /**
+     * Helper method for flushByTag()
+     * Gets list of identifiers and tags and removes all relations of those tags
+     *
+     * Scales O(1) with number of cache entries
+     * Scales O(n^2) with number of tags
+     */
+    protected function removeIdentifierEntriesAndRelations(array $identifiers, array $tags): void
+    {
+        // Set a temporary entry which holds all identifiers that need to be removed from
+        // the tag to identifiers sets
+        $uniqueTempKey = 'temp:' . StringUtility::getUniqueId();
+        $prefixedKeysToDelete = [$uniqueTempKey];
+        $prefixedIdentifierToTagsKeysToDelete = [];
+        foreach ($identifiers as $identifier) {
+            $prefixedKeysToDelete[] = $this->getDataIdentifier($identifier);
+            $prefixedIdentifierToTagsKeysToDelete[] = $this->getTagsIdentifier($identifier);
+        }
+        foreach ($tags as $tag) {
+            $prefixedKeysToDelete[] = $this->getTagIdentifier($tag);
+        }
+        $tagToIdentifiersSetsToRemoveIdentifiersFrom = $this->redis->sUnion(...$prefixedIdentifierToTagsKeysToDelete);
+        // Remove the tag to identifier set of the given tags, they will be removed anyway
+        $tagToIdentifiersSetsToRemoveIdentifiersFrom = array_diff($tagToIdentifiersSetsToRemoveIdentifiersFrom, $tags);
+        // Diff all identifiers that must be removed from tag to identifiers sets off from a
+        // tag to identifiers set and store result in same tag to identifiers set again
+        $queue = $this->redis->multi(\Redis::PIPELINE);
+        foreach ($identifiers as $identifier) {
+            $queue->sAdd($uniqueTempKey, $identifier);
+        }
+        foreach ($tagToIdentifiersSetsToRemoveIdentifiersFrom as $tagToIdentifiersSet) {
+            $queue->sDiffStore($this->getTagIdentifier($tagToIdentifiersSet), $this->getTagIdentifier($tagToIdentifiersSet), $uniqueTempKey);
+        }
+        $queue->del(array_merge($prefixedKeysToDelete, $prefixedIdentifierToTagsKeysToDelete));
+        $queue->exec();
+    }
+
+    protected function getDataIdentifier(string $identifier): string
+    {
+        return $this->keyPrefix . self::IDENTIFIER_DATA_PREFIX . $identifier;
+    }
+
+    protected function getTagsIdentifier(string $identifier): string
+    {
+        return $this->keyPrefix . self::IDENTIFIER_TAGS_PREFIX . $identifier;
+    }
+
+    protected function getTagIdentifier(string $tag): string
+    {
+        return $this->keyPrefix . self::TAG_IDENTIFIERS_PREFIX . $tag;
+    }
+
+    /**
+     * Build the authentication value based on the configuration, returning an associative array
+     * in case `username` and `password` has been configured, the `password` as string if only
+     * password has been configured or `null` to indicate no-authentication configuration, which
+     * is also possible to be used with `redis`.
+     */
+    protected function getAuthentication(): array|string|null
+    {
+        return match (true) {
+            // Username and password configured for authentication, build associative array
+            // out of possible and supported array variants by `php-redis::auth()`.
+            ($this->username !== null && $this->password !== null) => [
+                'user' => $this->username,
+                'pass' => $this->password,
+            ],
+            // Password-only authentication configured.
+            ($this->username === null && $this->password !== null) => $this->password,
+            // No authentication configured.
+            default => null,
+        };
+    }
+
+    /**
+     * Redis 6.0 allowed to set authentication as username/password pair, which was not covered by this class and
+     * lead to workaround by the community providing the authentication tuple as array for the password, which
+     * worked due to missing typed method arguments ignoring method phpdoc-block intentionally.
+     *
+     * @deprecated remove in TYPO3 v15 along with aligning signature in {@see self::setPassword()} and removing call
+     *             to this method here.
+     */
+    private function setAuthenticationFromWorkaroundPasswordArray(#[\SensitiveParameter] array $authentication): void
+    {
+        trigger_error(
+            'Set "password" option with array for redis cache backend is deprecated since version 14.0, will be removed in version 15.0',
+            E_USER_DEPRECATED,
+        );
+        if (isset($authentication['user']) && isset($authentication['pass'])) {
+            // Handle concrete associative array
+            $this->username = $authentication['user'];
+            $this->password = $authentication['password'];
+        } elseif (count($authentication) === 2) {
+            // Fallback array handling for list-array or associative arrays using other keys as generic as possible,
+            // without making to extensive handling here. Passing authentication as password was never officially
+            // supported and a workaround possible due to missing native types on method arguments.
+            $this->username = $authentication[array_key_first($authentication)];
+            $this->password = $authentication[array_key_last($authentication)];
+        } else {
+            throw new \RuntimeException(
+                'Cannot extract username and password from workaround array as password',
+                1761139334,
+            );
+        }
+    }
+}

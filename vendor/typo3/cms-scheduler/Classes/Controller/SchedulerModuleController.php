@@ -1,0 +1,529 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Scheduler\Controller;
+
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Backend\Attribute\AsController as BackendController;
+use TYPO3\CMS\Backend\Module\ModuleData;
+use TYPO3\CMS\Backend\Routing\UriBuilder;
+use TYPO3\CMS\Backend\Template\Components\ButtonBar;
+use TYPO3\CMS\Backend\Template\Components\ComponentFactory;
+use TYPO3\CMS\Backend\Template\ModuleTemplate;
+use TYPO3\CMS\Backend\Template\ModuleTemplateFactory;
+use TYPO3\CMS\Core\Context\Context;
+use TYPO3\CMS\Core\Core\Environment;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Database\Query\Restriction\HiddenRestriction;
+use TYPO3\CMS\Core\Imaging\IconFactory;
+use TYPO3\CMS\Core\Imaging\IconSize;
+use TYPO3\CMS\Core\Localization\LanguageService;
+use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Registry;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Core\View\ViewInterface;
+use TYPO3\CMS\Scheduler\Domain\Repository\SchedulerTaskRepository;
+use TYPO3\CMS\Scheduler\Execution;
+use TYPO3\CMS\Scheduler\Scheduler;
+use TYPO3\CMS\Scheduler\SchedulerManagementAction;
+use TYPO3\CMS\Scheduler\Service\TaskService;
+
+/**
+ * Scheduler backend module.
+ *
+ * @internal This class is a specific Backend controller implementation and is not considered part of the Public TYPO3 API.
+ */
+#[BackendController]
+final class SchedulerModuleController
+{
+    private SchedulerManagementAction $currentAction;
+
+    public function __construct(
+        private readonly Scheduler $scheduler,
+        private readonly SchedulerTaskRepository $taskRepository,
+        private readonly IconFactory $iconFactory,
+        private readonly UriBuilder $uriBuilder,
+        private readonly ModuleTemplateFactory $moduleTemplateFactory,
+        private readonly ComponentFactory $componentFactory,
+        private readonly Context $context,
+        private readonly TaskService $taskService,
+        private readonly PageRenderer $pageRenderer,
+        private readonly Registry $registry,
+    ) {}
+
+    /**
+     * Entry dispatcher method.
+     */
+    public function handleRequest(ServerRequestInterface $request): ResponseInterface
+    {
+        $parsedBody = $request->getParsedBody();
+
+        $view = $this->moduleTemplateFactory->create($request);
+        $view->assign('dateFormat', [
+            'day' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] ?? 'd-m-y',
+            'time' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'] ?? 'H:i',
+        ]);
+
+        $moduleData = $request->getAttribute('moduleData');
+
+        // Simple actions from list view.
+        if (!empty($parsedBody['action']['toggleHidden'])) {
+            $this->toggleDisabledFlag($view, (int)$parsedBody['action']['toggleHidden']);
+        } elseif (!empty($parsedBody['action']['stop'])) {
+            $this->stopTask($view, (int)$parsedBody['action']['stop']);
+        } elseif (!empty($parsedBody['action']['execute'])) {
+            $this->executeTasks($view, (string)$parsedBody['action']['execute']);
+        } elseif (!empty($parsedBody['action']['scheduleCron'])) {
+            $this->scheduleCrons($view, (string)$parsedBody['action']['scheduleCron']);
+        } elseif (!empty($parsedBody['action']['group']['uid'])) {
+            $this->groupDisable((int)$parsedBody['action']['group']['uid'], (int)($parsedBody['action']['group']['hidden'] ?? 0));
+        } elseif (!empty($parsedBody['action']['delete'])) {
+            $this->deleteTask($view, (int)$parsedBody['action']['delete']);
+        } elseif (!empty($parsedBody['action']['groupRemove'])) {
+            $rows = $this->groupRemove((int)$parsedBody['action']['groupRemove']);
+            if ($rows > 0) {
+                $view->addFlashMessage($this->getLanguageService()->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.group.deleted'));
+            } else {
+                $view->addFlashMessage($this->getLanguageService()->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.group.delete.failed'), '', ContextualFeedbackSeverity::WARNING);
+            }
+        }
+        return $this->renderListTasksView($view, $moduleData, $request);
+    }
+
+    /**
+     * AJAX endpoint for setup check modal content.
+     */
+    public function setupCheckAction(ServerRequestInterface $request): ResponseInterface
+    {
+        $view = $this->moduleTemplateFactory->create($request);
+        $view->assign('dateFormat', [
+            'day' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'] ?? 'd-m-y',
+            'time' => $GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'] ?? 'H:i',
+        ]);
+        $this->addSetupCheckInformation($view);
+        return $view->renderResponse('CheckScreen');
+    }
+
+    /**
+     * This is (unfortunately) used by additional field providers to distinct between "create new task" and "edit task".
+     */
+    public function getCurrentAction(): SchedulerManagementAction
+    {
+        return $this->currentAction;
+    }
+
+    /**
+     * This is (unfortunately) needed so getCurrentAction() used by additional field providers - it is required
+     * to distinct between "create new task" and "edit task".
+     */
+    public function setCurrentAction(SchedulerManagementAction $currentAction): void
+    {
+        $this->currentAction = $currentAction;
+    }
+
+    /**
+     * Mark a task as deleted.
+     */
+    private function deleteTask(ModuleTemplate $view, int $taskUid): void
+    {
+        $languageService = $this->getLanguageService();
+        if ($taskUid <= 0) {
+            throw new \RuntimeException('Expecting a valid task uid', 1641670374);
+        }
+        try {
+            // Try to fetch the task and delete it
+            $task = $this->taskRepository->findByUid($taskUid);
+            if ($this->taskRepository->isTaskMarkedAsRunning($task)) {
+                // If the task is currently running, it may not be deleted
+                $this->addMessage($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.canNotDeleteRunningTask'), ContextualFeedbackSeverity::ERROR);
+            } else {
+                if ($this->taskRepository->remove($task)) {
+                    $this->addMessage($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.deleteSuccess'));
+                } else {
+                    $this->addMessage($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.deleteError'));
+                }
+            }
+        } catch (\UnexpectedValueException) {
+            // The task could not be unserialized, simply update the database record setting it to deleted
+            $result = $this->taskRepository->remove($taskUid);
+            if ($result) {
+                $this->addMessage($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.deleteSuccess'));
+            } else {
+                $this->addMessage($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.deleteError'), ContextualFeedbackSeverity::ERROR);
+            }
+        } catch (\OutOfBoundsException) {
+            // The task was not found, for some reason
+            $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskNotFound'), $taskUid), ContextualFeedbackSeverity::ERROR);
+        }
+    }
+
+    /**
+     * Clears the registered running executions from the task.
+     * Note this doesn't actually stop the running script. It just unmarks execution.
+     * @todo find a way to really kill the running task.
+     */
+    private function stopTask(ModuleTemplate $view, int $taskUid): void
+    {
+        $languageService = $this->getLanguageService();
+        if ($taskUid <= 0) {
+            throw new \RuntimeException('Expecting a valid task uid', 1641670375);
+        }
+        try {
+            // Try to fetch the task and stop it
+            $task = $this->taskRepository->findByUid($taskUid);
+            if ($this->taskRepository->isTaskMarkedAsRunning($task)) {
+                // If the task is indeed currently running, clear marked executions
+                $result = $this->taskRepository->removeAllRegisteredExecutionsForTask($task);
+                if ($result) {
+                    $this->addMessage($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.stopSuccess'));
+                } else {
+                    $this->addMessage($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.stopError'), ContextualFeedbackSeverity::ERROR);
+                }
+            } else {
+                // The task is not running, nothing to unmark
+                $this->addMessage($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.maynotStopNonRunningTask'), ContextualFeedbackSeverity::WARNING);
+            }
+        } catch (\OutOfBoundsException $e) {
+            $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskNotFound'), $taskUid), ContextualFeedbackSeverity::ERROR);
+        } catch (\UnexpectedValueException $e) {
+            $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.stopTaskFailed'), $taskUid, $e->getMessage()), ContextualFeedbackSeverity::ERROR);
+        }
+    }
+
+    /**
+     * Toggle the disabled state of a task and register for next execution if a task is of type "single execution".
+     */
+    private function toggleDisabledFlag(ModuleTemplate $view, int $taskUid): void
+    {
+        $languageService = $this->getLanguageService();
+        if ($taskUid <= 0) {
+            throw new \RuntimeException('Expecting a valid task uid to toggle disabled state', 1641670373);
+        }
+        try {
+            $task = $this->taskRepository->findByUid($taskUid);
+            // Toggle the task state and add a flash message
+            $taskName = $this->taskService->getHumanReadableTaskName($task);
+            $isTaskDisabled = $task->isDisabled();
+            // If a disabled single task is enabled again, register it for a single execution at next scheduler run.
+            if ($isTaskDisabled && $task->getExecution()->isSingleRun()) {
+                $task->setDisabled(false);
+                $task->setRunOnNextCronJob(true);
+                $execution = Execution::createSingleExecution($this->context->getAspect('date')->get('timestamp'));
+                $task->setExecution($execution);
+                $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskEnabledAndQueuedForExecution'), $taskName, $taskUid));
+            } elseif ($isTaskDisabled) {
+                $task->setDisabled(false);
+                $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskEnabled'), $taskName, $taskUid));
+            } else {
+                $task->setDisabled(true);
+                $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskDisabled'), $taskName, $taskUid));
+            }
+            $this->taskRepository->updateExecution($task);
+        } catch (\OutOfBoundsException) {
+            $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskNotFound'), $taskUid), ContextualFeedbackSeverity::ERROR);
+        } catch (\UnexpectedValueException $e) {
+            $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.toggleDisableFailed'), $taskUid, $e->getMessage()), ContextualFeedbackSeverity::ERROR);
+        }
+    }
+
+    /**
+     * Execute a list of tasks.
+     */
+    private function executeTasks(ModuleTemplate $view, string $taskUids): void
+    {
+        $taskUids = GeneralUtility::intExplode(',', $taskUids, true);
+        if (empty($taskUids)) {
+            throw new \RuntimeException('Expecting a list of task uids to execute', 1641715832);
+        }
+        // Loop selected tasks and execute.
+        $languageService = $this->getLanguageService();
+        foreach ($taskUids as $uid) {
+            try {
+                $task = $this->taskRepository->findByUid($uid);
+                $name = $this->taskService->getHumanReadableTaskName($task);
+                // Try to execute it and report result
+                $result = $this->scheduler->executeTask($task);
+                if ($result) {
+                    $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.executed'), $name, $uid));
+                } else {
+                    $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.notExecuted'), $name, $uid), ContextualFeedbackSeverity::ERROR);
+                }
+                $this->scheduler->recordLastRun('manual');
+            } catch (\OutOfBoundsException $e) {
+                $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskNotFound'), $uid), ContextualFeedbackSeverity::ERROR);
+            } catch (\Exception $e) {
+                $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.executionFailed'), $uid, $e->getMessage()), ContextualFeedbackSeverity::ERROR);
+            }
+        }
+    }
+
+    /**
+     * Schedule selected tasks to be executed on next cron run
+     */
+    private function scheduleCrons(ModuleTemplate $view, string $taskUids): void
+    {
+        $taskUids = GeneralUtility::intExplode(',', $taskUids, true);
+        if (empty($taskUids)) {
+            throw new \RuntimeException('Expecting a list of task uids to schedule', 1641715833);
+        }
+        // Loop selected tasks and register for next cron run.
+        $languageService = $this->getLanguageService();
+        foreach ($taskUids as $uid) {
+            try {
+                $task = $this->taskRepository->findByUid($uid);
+                $name = $this->taskService->getHumanReadableTaskName($task);
+                $task->setRunOnNextCronJob(true);
+                if ($task->isDisabled()) {
+                    $task->setDisabled(false);
+                    $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskEnabledAndQueuedForExecution'), $name, $uid));
+                } else {
+                    $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskQueuedForExecution'), $name, $uid));
+                }
+                $this->taskRepository->updateExecution($task);
+            } catch (\OutOfBoundsException $e) {
+                $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.taskNotFound'), $uid), ContextualFeedbackSeverity::ERROR);
+            } catch (\UnexpectedValueException $e) {
+                $this->addMessage($view, sprintf($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:msg.schedulingFailed'), $uid, $e->getMessage()), ContextualFeedbackSeverity::ERROR);
+            }
+        }
+    }
+
+    /**
+     * Assemble a listing of scheduled tasks
+     */
+    private function renderListTasksView(ModuleTemplate $view, ModuleData $moduleData, ServerRequestInterface $request): ResponseInterface
+    {
+        $languageService = $this->getLanguageService();
+        $data = $this->taskRepository->getGroupedTasks();
+        $hasAvailableTaskTypes = $this->taskService->getAllTaskTypes() !== [];
+
+        $groups = $data['taskGroupsWithTasks'] ?? [];
+        $groups = array_map(
+            static fn(int $key, array $group): array => array_merge($group, ['taskGroupCollapsed' => (bool)($moduleData->get('task-group-' . $key, false))]),
+            array_keys($groups),
+            $groups
+        );
+
+        // Move "not assigned to group" to the end
+        if (array_key_exists('uid', $groups[0] ?? []) && $groups[0]['uid'] === null) {
+            $groupWithoutTaskGroup = $groups[0];
+            unset($groups[0]);
+            $groups[0] = $groupWithoutTaskGroup;
+        }
+
+        $this->pageRenderer->loadJavaScriptModule('@typo3/scheduler/new-scheduler-task-wizard-button.js');
+        $this->pageRenderer->loadJavaScriptModule('@typo3/scheduler/setup-check-button.js');
+
+        $view->assignMultiple([
+            'groups' => $groups,
+            'groupsWithoutTasks' => $this->getGroupsWithoutTasks($groups),
+            'hasAvailableTaskTypes' => $hasAvailableTaskTypes,
+            'now' => $this->context->getAspect('date')->get('timestamp'),
+            'errorClasses' => $data['errorClasses'],
+            'returnUrl' => $this->uriBuilder->buildUriFromRoute('scheduler'),
+            'errorClassesCollapsed' => (bool)($moduleData->get('task-group-missing', false)),
+        ]);
+        $view->setTitle(
+            $languageService->translate('title', 'scheduler.module'),
+            $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:function.scheduler')
+        );
+        $view->makeDocHeaderModuleMenu();
+        if ($hasAvailableTaskTypes) {
+            $addTaskUrl = (string)$this->uriBuilder->buildUriFromRoute('ajax_new_scheduler_task_wizard', [
+                'returnUrl' => $request->getAttribute('normalizedParams')->getRequestUri(),
+            ]);
+            $view->assign('addTaskUrl', $addTaskUrl);
+            $this->addDocHeaderAddTaskButton($view, $addTaskUrl);
+            $this->addDocHeaderAddTaskGroupButton($view);
+            $this->addDocHeaderSetupCheckButton($view);
+        }
+        $this->addDocHeaderShortcutButton($view, $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:function.scheduler'));
+        return $view->renderResponse('ListTasks');
+    }
+
+    private function addDocHeaderAddTaskButton(ModuleTemplate $moduleTemplate, string $url): void
+    {
+        $languageService = $this->getLanguageService();
+        $addButton = $this->componentFactory->createGenericButton()
+            ->setTag('typo3-scheduler-new-task-wizard-button')
+            ->setIcon($this->iconFactory->getIcon('actions-plus', IconSize::SMALL))
+            ->setLabel($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:function.add'))
+            ->setShowLabelText(true)
+            ->setAttributes([
+                'url' => $url,
+                'subject' => $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:function.add'),
+            ]);
+        $moduleTemplate->addButtonToButtonBar($addButton, ButtonBar::BUTTON_POSITION_LEFT, 2);
+    }
+
+    private function addDocHeaderAddTaskGroupButton(ModuleTemplate $moduleTemplate): void
+    {
+        $languageService = $this->getLanguageService();
+        $addButton = $this->componentFactory->createInputButton()
+            ->setTitle($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:function.group.add'))
+            ->setShowLabelText(true)
+            ->setIcon($this->iconFactory->getIcon('actions-plus', IconSize::SMALL))
+            ->setName('createSchedulerGroup')
+            ->setValue('1')
+            ->setClasses('t3js-create-group');
+        $moduleTemplate->addButtonToButtonBar($addButton, ButtonBar::BUTTON_POSITION_LEFT, 3);
+    }
+
+    private function addDocHeaderSetupCheckButton(ModuleTemplate $moduleTemplate): void
+    {
+        $languageService = $this->getLanguageService();
+        $setupCheckButton = $this->componentFactory->createGenericButton()
+            ->setTag('typo3-scheduler-setup-check-button')
+            ->setIcon($this->iconFactory->getIcon('actions-window-cog', IconSize::SMALL))
+            ->setLabel($languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:function.check'))
+            ->setShowLabelText(true)
+            ->setAttributes([
+                'url' => (string)$this->uriBuilder->buildUriFromRoute('ajax_scheduler_setup_check'),
+                'subject' => $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:function.check'),
+            ]);
+        $moduleTemplate->addButtonToButtonBar($setupCheckButton, ButtonBar::BUTTON_POSITION_RIGHT, 0);
+    }
+
+    private function addDocHeaderShortcutButton(ModuleTemplate $moduleTemplate, string $name): void
+    {
+        $moduleTemplate->getDocHeaderComponent()->setShortcutContext(
+            'scheduler',
+            $name
+        );
+    }
+
+    /**
+     * Add a flash message to the flash message queue of this module.
+     */
+    private function addMessage(ModuleTemplate $moduleTemplate, string $message, ContextualFeedbackSeverity $severity = ContextualFeedbackSeverity::OK): void
+    {
+        $moduleTemplate->addFlashMessage($message, '', $severity);
+    }
+
+    private function getGroupsWithoutTasks(array $taskGroupsWithTasks): array
+    {
+        $uidGroupsWithTasks = array_filter(array_column($taskGroupsWithTasks, 'uid'));
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_scheduler_task_group');
+        $queryBuilder->getRestrictions()->removeByType(HiddenRestriction::class);
+        $resultEmptyGroups = $queryBuilder->select('*')
+            ->from('tx_scheduler_task_group')
+            ->orderBy('groupName');
+
+        // Only add where statement if we have taskGroups to consider.
+        if (!empty($uidGroupsWithTasks)) {
+            $resultEmptyGroups->where($queryBuilder->expr()->notIn('uid', $uidGroupsWithTasks));
+        }
+
+        return $resultEmptyGroups->executeQuery()->fetchAllAssociative();
+    }
+
+    private function groupRemove(int $groupId): int
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_scheduler_task_group');
+        return $queryBuilder->update('tx_scheduler_task_group')
+            ->where($queryBuilder->expr()->eq('uid', $groupId))
+            ->set('deleted', 1)
+            ->executeStatement();
+    }
+
+    private function groupDisable(int $groupId, int $hidden): void
+    {
+        $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)->getQueryBuilderForTable('tx_scheduler_task_group');
+        $queryBuilder->update('tx_scheduler_task_group')
+            ->where($queryBuilder->expr()->eq('uid', $queryBuilder->createNamedParameter($groupId)))
+            ->set('hidden', $hidden)
+            ->executeStatement();
+    }
+
+    private function addSetupCheckInformation(ViewInterface $view): void
+    {
+        $languageService = $this->getLanguageService();
+        // Display information about the last automated run, as stored in the system registry.
+        $lastRun = $this->registry->get('tx_scheduler', 'lastRun');
+        $lastRunMessageLabel = 'msg.noLastRun';
+        $lastRunMessageLabelArguments = [];
+        $lastRunSeverity = ContextualFeedbackSeverity::WARNING->value;
+        if (is_array($lastRun)) {
+            if (empty($lastRun['end']) || empty($lastRun['start']) || empty($lastRun['type'])) {
+                $lastRunMessageLabel = 'msg.incompleteLastRun';
+                $lastRunSeverity = ContextualFeedbackSeverity::WARNING->value;
+            } else {
+                $lastRunMessageLabelArguments = [
+                    $lastRun['type'] === 'manual'
+                        ? $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:label.manually')
+                        : $languageService->sL('LLL:EXT:scheduler/Resources/Private/Language/locallang.xlf:label.automatically'),
+                    date($GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'], $lastRun['start']),
+                    date($GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'], $lastRun['start']),
+                    date($GLOBALS['TYPO3_CONF_VARS']['SYS']['ddmmyy'], $lastRun['end']),
+                    date($GLOBALS['TYPO3_CONF_VARS']['SYS']['hhmm'], $lastRun['end']),
+                ];
+                $lastRunMessageLabel = 'msg.lastRun';
+                $lastRunSeverity = ContextualFeedbackSeverity::INFO->value;
+            }
+        }
+
+        // Information about cli script.
+        $script = $this->determineExecutablePath();
+        $isExecutableMessageLabel = 'msg.cliScriptNotExecutable';
+        $isExecutableSeverity = ContextualFeedbackSeverity::ERROR->value;
+        $composerMode = !$script && Environment::isComposerMode();
+        if (!$composerMode) {
+            // Check if CLI script is executable or not. Skip this check if running Windows since executable detection
+            // is not reliable on this platform, the script will always appear as *not* executable.
+            $isExecutable = Environment::isWindows() ? true : ($script && is_executable($script));
+            if ($isExecutable) {
+                $isExecutableMessageLabel = 'msg.cliScriptExecutable';
+                $isExecutableSeverity = ContextualFeedbackSeverity::OK->value;
+            }
+        }
+
+        $view->assignMultiple([
+            'composerMode' => $composerMode,
+            'script' => $script,
+            'lastRunMessageLabel' => $lastRunMessageLabel,
+            'lastRunMessageLabelArguments' => $lastRunMessageLabelArguments,
+            'lastRunSeverity' => $lastRunSeverity,
+            'isExecutableMessageLabel' => $isExecutableMessageLabel,
+            'isExecutableSeverity' => $isExecutableSeverity,
+        ]);
+    }
+
+    private function determineExecutablePath(): ?string
+    {
+        if (!Environment::isComposerMode()) {
+            return GeneralUtility::getFileAbsFileName('EXT:core/bin/typo3');
+        }
+        $composerJsonFile = getenv('TYPO3_PATH_COMPOSER_ROOT') . '/composer.json';
+        if (!file_exists($composerJsonFile) || !($jsonContent = file_get_contents($composerJsonFile))) {
+            return null;
+        }
+        $jsonConfig = @json_decode($jsonContent, true);
+        if (empty($jsonConfig) || !is_array($jsonConfig)) {
+            return null;
+        }
+        $vendorDir = trim($jsonConfig['config']['vendor-dir'] ?? 'vendor', '/');
+        $binDir = trim($jsonConfig['config']['bin-dir'] ?? $vendorDir . '/bin', '/');
+        return sprintf('%s/%s/typo3', getenv('TYPO3_PATH_COMPOSER_ROOT'), $binDir);
+    }
+
+    private function getLanguageService(): LanguageService
+    {
+        return $GLOBALS['LANG'];
+    }
+}

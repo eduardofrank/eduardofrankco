@@ -1,0 +1,18 @@
+plugin.tx_fluidfpdf {
+	view {
+		templateRootPaths {
+			100 = {$plugin.tx_fluidfpdf.view.templateRootPath}
+		}
+		partialRootPaths {
+			100 = {$plugin.tx_fluidfpdf.view.partialRootPath}
+		}
+	}
+	persistence {
+		storagePid = {$plugin.tx_fluidfpdf.persistence.storagePid}
+	}
+	features {
+		# uncomment the following line to enable the new Property Mapper.
+		# rewrittenPropertyMapper = 1
+	}
+}
+

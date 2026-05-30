@@ -1,0 +1,66 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Redirects\FormDataProvider;
+
+use Symfony\Component\DependencyInjection\Attribute\Autoconfigure;
+use TYPO3\CMS\Backend\Form\FormDataProviderInterface;
+use TYPO3\CMS\Redirects\Data\SourceHostProvider;
+use TYPO3\CMS\Redirects\Repository\Demand;
+
+/**
+ * Inject available domain hosts into a valuepicker form
+ * @internal
+ */
+#[Autoconfigure(public: true)]
+final readonly class ValuePickerItemDataProvider implements FormDataProviderInterface
+{
+    public function __construct(
+        private SourceHostProvider $sourceHostProvider,
+    ) {}
+
+    /**
+     * Add sys_domains into $result data array
+     *
+     * @param array $result Initialized result array
+     * @return array Result filled with more data
+     */
+    public function addData(array $result): array
+    {
+        if ($result['tableName'] === 'sys_redirect' && isset($result['processedTca']['columns']['source_host'])) {
+            // Don't add the wildcard domain for the qrcode / short_url types,
+            // because this case does not exist in context of a qrcode / short_url.
+            $redirectType = $result['databaseRow']['redirect_type'] ?? '';
+            if ($redirectType !== Demand::QRCODE_REDIRECT_TYPE && $redirectType !== Demand::SHORT_URL_REDIRECT_TYPE) {
+                $result['processedTca']['columns']['source_host']['config']['valuePicker']['items'][] = [
+                    'label' => '*',
+                    'value' => '*',
+                ];
+            }
+
+            $domains = $this->sourceHostProvider->getHosts();
+            foreach ($domains as $domain) {
+                $result['processedTca']['columns']['source_host']['config']['valuePicker']['items'][]
+                    = [
+                        'label' => $domain,
+                        'value' => $domain,
+                    ];
+            }
+        }
+        return $result;
+    }
+}

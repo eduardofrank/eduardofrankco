@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" target-language="de" datatype="plaintext" original="messages" date="2016-02-19T17:19:41Z" product-name="fluid_fpdf">
+		<body>
+
+			<!--=== Templates ===-->
+			<trans-unit id="tx_fluidfpdf_constants.view_template_root_path">
+				<source>Path to templates (FE)</source>
+				<target>Pfad zu Template (FE)</target>
+			</trans-unit>
+			<trans-unit id="tx_fluidfpdf_constants.view_partials_root_path">
+				<source>Path to template partials (FE)</source>
+				<target>Pfad zu Template-Partials (FE)</target>
+			</trans-unit>
+			<trans-unit id="tx_fluidfpdf_constants.view_layouts_root_path">
+				<source>Path to template layouts (FE)</source>
+				<target>Pfad zu Template-Layout (FE)</target>
+			</trans-unit>
+
+			<trans-unit id="tx_fluidfpdf_constants.storage_pid">
+				<source>Default storage PID</source>
+				<target>Standard Datensatz Container</target>
+			</trans-unit>
+
+
+		</body>
+	</file>
+</xliff>

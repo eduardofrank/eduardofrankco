@@ -1,0 +1,26 @@
+# Fluid FPDF Tutorial Bookmarks
+
+```xml
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en"
+	  xmlns:f="http://typo3.org/ns/fluid/ViewHelpers"
+	  xmlns:fpdf="http://typo3.org/ns/CodingMs/FluidFpdf/ViewHelpers"
+	  data-namespace-typo3-fluid="true">
+<fpdf:pdf>
+	<fpdf:setFont family="Arial" style="" size="15" />
+
+	<fpdf:addPage />
+	<fpdf:bookmark title="Page 1" isUTF8="false" />
+	<fpdf:bookmark title="Paragraph 1" isUTF8="false" level="1" y="-1" />
+	<fpdf:cell width="0" height="6" text="Paragraph 1" />
+	<fpdf:ln height="50" />
+	<fpdf:bookmark title="Paragraph 2" isUTF8="false" level="1" y="-1" />
+	<fpdf:cell width="0" height="6" text="Paragraph 2" />
+
+	<fpdf:addPage />
+	<fpdf:bookmark title="Page 2" isUTF8="false" />
+	<fpdf:bookmark title="Paragraph 3" isUTF8="false" level="1" y="-1" />
+	<fpdf:cell width="0" height="6" text="Paragraph 3" />
+
+</fpdf:pdf>
+</html>
+```

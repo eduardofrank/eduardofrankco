@@ -1,0 +1,150 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Fluid\ViewHelpers;
+
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Domain\RecordInterface;
+use TYPO3\CMS\Core\TimeTracker\TimeTracker;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
+use TYPO3\CMS\Extbase\Reflection\ObjectAccess;
+use TYPO3\CMS\Frontend\ContentObject\ContentObjectRenderer;
+use TYPO3Fluid\Fluid\Core\ViewHelper\AbstractViewHelper;
+use TYPO3Fluid\Fluid\Core\ViewHelper\InvalidArgumentValueException;
+
+/**
+ * ViewHelper to render CObjects (objects containing rendering definitions for records/elements),
+ * using the global TypoScript configuration.
+ *
+ * ```
+ *   <f:cObject typoscriptObjectPath="lib.someLibObject" />
+ * ```
+ *
+ * **Note:** You have to ensure proper escaping (`htmlspecialchars`/`intval`/etc.) on your own!
+ *
+ * @see https://docs.typo3.org/permalink/t3viewhelper:typo3-fluid-cobject
+ */
+final class CObjectViewHelper extends AbstractViewHelper
+{
+    /**
+     * Disable escaping of child nodes' output
+     *
+     * @var bool
+     */
+    protected $escapeChildren = false;
+
+    /**
+     * Disable escaping of this node's output
+     *
+     * @var bool
+     */
+    protected $escapeOutput = false;
+
+    public function initializeArguments(): void
+    {
+        $this->registerArgument('data', 'mixed', 'the data to be used for rendering the cObject. Can be an object, array or string. If this argument is not set, child nodes will be used');
+        $this->registerArgument('typoscriptObjectPath', 'string', 'the TypoScript setup path of the TypoScript object to render', true);
+        $this->registerArgument('currentValueKey', 'string', 'currentValueKey');
+        $this->registerArgument('table', 'string', 'the table name associated with "data" argument. Typically tt_content or one of your custom tables. This argument should be set if rendering a FILES cObject where file references are used, or if the data argument is a database record.', false, '');
+    }
+
+    /**
+     * Renders the TypoScript object in the given TypoScript setup path.
+     */
+    public function render(): string
+    {
+        $data = $this->renderChildren() ?? [];
+        $typoscriptObjectPath = (string)$this->arguments['typoscriptObjectPath'];
+        $currentValueKey = $this->arguments['currentValueKey'];
+        $table = $this->arguments['table'];
+        if (!$this->renderingContext->hasAttribute(ServerRequestInterface::class)) {
+            throw new \RuntimeException('Required request not found in RenderingContext', 1724243608);
+        }
+        $request = $this->renderingContext->getAttribute(ServerRequestInterface::class);
+        $contentObjectRenderer = GeneralUtility::makeInstance(ContentObjectRenderer::class);
+        $contentObjectRenderer->setRequest($request);
+        $parent = $request->getAttribute('currentContentObject');
+        if ($parent instanceof ContentObjectRenderer) {
+            $contentObjectRenderer->setParent($parent->data, $parent->currentRecord);
+        }
+        $currentValue = null;
+        if (is_object($data)) {
+            $data = $data instanceof RecordInterface ? ($data->getRawRecord()?->toArray(true) ?? $data->toArray()) : ObjectAccess::getGettableProperties($data);
+        } elseif (is_string($data) || is_numeric($data)) {
+            $currentValue = (string)$data;
+            $data = [$data];
+        }
+        $contentObjectRenderer->start($data, $table);
+        if ($currentValue !== null) {
+            $contentObjectRenderer->setCurrentVal($currentValue);
+        } elseif ($currentValueKey !== null && isset($data[$currentValueKey])) {
+            $contentObjectRenderer->setCurrentVal($data[$currentValueKey]);
+        }
+        $pathSegments = GeneralUtility::trimExplode('.', $typoscriptObjectPath);
+        $lastSegment = (string)array_pop($pathSegments);
+        $setup = self::getConfigurationManager()->getConfiguration(ConfigurationManagerInterface::CONFIGURATION_TYPE_FULL_TYPOSCRIPT);
+        foreach ($pathSegments as $segment) {
+            if (!array_key_exists($segment . '.', $setup)) {
+                throw new InvalidArgumentValueException(
+                    'TypoScript object path "' . $typoscriptObjectPath . '" does not exist',
+                    1253191023
+                );
+            }
+            $setup = $setup[$segment . '.'];
+        }
+        if (!isset($setup[$lastSegment])) {
+            throw new InvalidArgumentValueException(
+                'No Content Object definition found at TypoScript object path "' . $typoscriptObjectPath . '"',
+                1540246570
+            );
+        }
+        return self::renderContentObject($contentObjectRenderer, $setup, $typoscriptObjectPath, $lastSegment);
+    }
+
+    /**
+     * Renders single content object and increases time tracker stack pointer
+     */
+    private static function renderContentObject(ContentObjectRenderer $contentObjectRenderer, array $setup, string $typoscriptObjectPath, string $lastSegment): string
+    {
+        $timeTracker = GeneralUtility::makeInstance(TimeTracker::class);
+        if ($timeTracker->LR) {
+            $timeTracker->push('/f:cObject/', '<' . $typoscriptObjectPath);
+        }
+        $timeTracker->incStackPointer();
+        $content = $contentObjectRenderer->cObjGetSingle($setup[$lastSegment], $setup[$lastSegment . '.'] ?? [], $typoscriptObjectPath);
+        $timeTracker->decStackPointer();
+        if ($timeTracker->LR) {
+            $timeTracker->pull($content);
+        }
+        return $content;
+    }
+
+    private static function getConfigurationManager(): ConfigurationManagerInterface
+    {
+        // @todo: this should be replaced by DI once Fluid can handle DI properly
+        return GeneralUtility::getContainer()->get(ConfigurationManagerInterface::class);
+    }
+
+    /**
+     * Explicitly set argument name to be used as content.
+     */
+    public function getContentArgumentName(): string
+    {
+        return 'data';
+    }
+}

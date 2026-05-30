@@ -1,0 +1,203 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Form\Mvc\Property\TypeConverter;
+
+use TYPO3\CMS\Core\Utility\ArrayUtility;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Extbase\Property\PropertyMappingConfigurationInterface;
+use TYPO3\CMS\Extbase\Property\TypeConverter\AbstractTypeConverter;
+use TYPO3\CMS\Form\Domain\Configuration\ConfigurationService;
+use TYPO3\CMS\Form\Domain\Configuration\Exception\PropertyException;
+use TYPO3\CMS\Form\Domain\Configuration\FormDefinitionConversionService;
+use TYPO3\CMS\Form\Domain\Configuration\FormDefinitionValidationService;
+use TYPO3\CMS\Form\Type\FormDefinitionArray;
+
+/**
+ * Converter for form definition arrays
+ *
+ * @internal
+ */
+class FormDefinitionArrayConverter extends AbstractTypeConverter
+{
+    public function __construct(
+        protected readonly FormDefinitionValidationService $formDefinitionValidationService,
+        protected readonly FormDefinitionConversionService $formDefinitionConversionService,
+        protected readonly ConfigurationService $configurationService,
+    ) {}
+
+    /**
+     * Convert from $source to $targetType, a noop if the source is an array.
+     * If it is an empty string it will be converted to an empty array.
+     *
+     * @param string $source
+     * @param string $targetType
+     * @throws PropertyException
+     */
+    public function convertFrom(
+        $source,
+        $targetType,
+        array $convertedChildProperties = [],
+        ?PropertyMappingConfigurationInterface $configuration = null
+    ): FormDefinitionArray {
+        $rawFormDefinitionArray = json_decode($source, true);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new PropertyException('Unable to decode JSON source: ' . json_last_error_msg(), 1512578002);
+        }
+
+        // Extend the hmac hashing key with the "per form editor session (load / save)" unique key.
+        // The form persistence identifier is embedded in the form definition by addHmacData()
+        // to allow looking up the correct per-form session token.
+        // @see \TYPO3\CMS\Form\Domain\Configuration\FormDefinitionConversionService::addHmacData
+        $formPersistenceIdentifier = $rawFormDefinitionArray['_formPersistenceIdentifier'] ?? '';
+        unset($rawFormDefinitionArray['_formPersistenceIdentifier']);
+        $sessionToken = $this->retrieveSessionToken($formPersistenceIdentifier);
+
+        $prototypeName = $rawFormDefinitionArray['prototypeName'] ?? null;
+        $identifier = $rawFormDefinitionArray['identifier'] ?? null;
+
+        // A modification of the properties "prototypeName" and "identifier" from the root form element
+        // through the form editor is always forbidden.
+        try {
+            if (!$this->formDefinitionValidationService->isPropertyValueEqualToHistoricalValue([$identifier, 'identifier'], $identifier, $rawFormDefinitionArray['_orig_identifier'] ?? [], $sessionToken)) {
+                throw new PropertyException('Unauthorized modification of "identifier".', 1528538324);
+            }
+
+            if (!$this->formDefinitionValidationService->isPropertyValueEqualToHistoricalValue([$identifier, 'prototypeName'], $prototypeName, $rawFormDefinitionArray['_orig_prototypeName'] ?? [], $sessionToken)) {
+                throw new PropertyException('Unauthorized modification of "prototype name".', 1528538323);
+            }
+        } catch (PropertyException $e) {
+            throw new PropertyException('Unauthorized modification of "prototype name" or "identifier".', 1528538322);
+        }
+
+        $this->formDefinitionValidationService->validateFormDefinitionProperties($rawFormDefinitionArray, $prototypeName, $sessionToken);
+
+        // @todo move all the transformations to FormDefinitionConversionService
+        $rawFormDefinitionArray = $this->filterEmptyArrays($rawFormDefinitionArray);
+        $rawFormDefinitionArray = $this->transformMultiValueElementsForFormFramework($rawFormDefinitionArray);
+
+        // Get RTE property paths for transformation and sanitization
+        $rtePropertyPaths = $this->getRtePropertyPaths($prototypeName);
+
+        // Transform RTE content using RteHtmlParser before persistence
+        if ($rtePropertyPaths !== []) {
+            $rawFormDefinitionArray = $this->formDefinitionConversionService->transformRteContentForPersistence(
+                $rawFormDefinitionArray,
+                $rtePropertyPaths
+            );
+        }
+
+        // Sanitize HTML: RTE fields use HtmlSanitizer, all others use strip_tags
+        $rawFormDefinitionArray = $this->formDefinitionConversionService->sanitizeHtml($rawFormDefinitionArray, $rtePropertyPaths);
+        $rawFormDefinitionArray = $this->formDefinitionConversionService->removeHmacData($rawFormDefinitionArray);
+
+        // Filter empty arrays again after removeHmacData, as removing _orig_* entries
+        // can leave previously non-empty arrays (e.g. fluidAdditionalAttributes) empty.
+        $rawFormDefinitionArray = $this->filterEmptyArrays($rawFormDefinitionArray);
+
+        return GeneralUtility::makeInstance(FormDefinitionArray::class, $rawFormDefinitionArray);
+    }
+
+    /**
+     * Some data which is build by the form editor needs a transformation before
+     * it can be used by the framework.
+     * Multivalue elements like select elements produce data like:
+     *
+     * [
+     *   _label => 'label'
+     *   _value => 'value'
+     * ]
+     *
+     * This method transforms this into:
+     *
+     * [
+     *   'value' => 'label'
+     * ]
+     *
+     * @param array $input
+     */
+    protected function transformMultiValueElementsForFormFramework(array $input): array
+    {
+        $output = [];
+
+        foreach ($input as $key => $value) {
+            if (is_int($key) && is_array($value) && isset($value['_label']) && isset($value['_value'])) {
+                $key = $value['_value'];
+                $value = $value['_label'];
+            }
+
+            if (is_array($value)) {
+                $output[$key] = $this->transformMultiValueElementsForFormFramework($value);
+            } else {
+                $output[$key] = $value;
+            }
+        }
+
+        return $output;
+    }
+
+    /**
+     * Remove keys from an array if the key value is an empty array
+     *
+     * @todo ArrayUtility?
+     */
+    protected function filterEmptyArrays(array $array): array
+    {
+        foreach ($array as $key => $value) {
+            if (!is_array($value)) {
+                continue;
+            }
+            if (empty($value)) {
+                unset($array[$key]);
+                continue;
+            }
+            $array[$key] = $this->filterEmptyArrays($value);
+            if (empty($array[$key])) {
+                unset($array[$key]);
+            }
+        }
+
+        return $array;
+    }
+
+    protected function retrieveSessionToken(string $formPersistenceIdentifier): string
+    {
+        return $this->formDefinitionConversionService->retrieveSessionToken($formPersistenceIdentifier);
+    }
+
+    /**
+     * Get RTE-enabled property paths from the prototype configuration.
+     *
+     * @param string|null $prototypeName The prototype name
+     * @return array Map of element types to their RTE property paths
+     */
+    protected function getRtePropertyPaths(?string $prototypeName): array
+    {
+        if ($prototypeName === null) {
+            return [];
+        }
+
+        try {
+            $prototypeConfiguration = $this->configurationService->getPrototypeConfiguration($prototypeName);
+            return $this->formDefinitionConversionService->extractRtePropertyPaths($prototypeConfiguration);
+        } catch (\Exception $e) {
+            // If prototype configuration is not available, return empty array
+            return [];
+        }
+    }
+}

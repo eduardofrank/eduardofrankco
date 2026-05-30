@@ -1,0 +1,19 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  MaxServ\FrontendRequest\:
+    resource: '../Classes/*'
+
+  _instanceof:
+    MaxServ\FrontendRequest\PageParser\ParserInterface:
+      tags: [ 'frontend_request.page_parser' ]
+
+  MaxServ\FrontendRequest\PageParser\ParserCollector:
+    arguments:
+      $taggedParsers: !tagged_iterator frontend_request.page_parser
+
+  MaxServ\FrontendRequest\Controller\RequestController:
+    public: true

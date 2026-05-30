@@ -1,0 +1,636 @@
+<?php
+
+/*
+ * Copyright (c) 2025-2026 Netresearch DTT GmbH
+ * SPDX-License-Identifier: AGPL-3.0-or-later
+ */
+
+declare(strict_types=1);
+
+namespace Netresearch\RteCKEditorImage\Service;
+
+use Netresearch\RteCKEditorImage\Dto\SrcOrigin;
+use Netresearch\RteCKEditorImage\Dto\ValidationIssue;
+use Netresearch\RteCKEditorImage\Dto\ValidationIssueType;
+use Netresearch\RteCKEditorImage\Dto\ValidationResult;
+use TYPO3\CMS\Core\Database\Connection;
+use TYPO3\CMS\Core\Database\ConnectionPool;
+use TYPO3\CMS\Core\Html\HtmlParser;
+use TYPO3\CMS\Core\Resource\Exception\FileDoesNotExistException;
+use TYPO3\CMS\Core\Resource\ResourceFactory;
+
+/**
+ * Validates and fixes image references in RTE content fields.
+ *
+ * Detects stale src attributes, orphaned file UIDs, missing file UIDs,
+ * and processed image URLs that won't survive TYPO3 upgrades.
+ *
+ * Uses the same HtmlParser pattern as {@see \Netresearch\RteCKEditorImage\Listener\FileOperation\UpdateImageReferences}
+ * and {@see \Netresearch\RteCKEditorImage\DataHandling\SoftReference\RteImageSoftReferenceParser}.
+ */
+class RteImageReferenceValidator
+{
+    public function __construct(
+        private readonly ConnectionPool $connectionPool,
+        private readonly ResourceFactory $resourceFactory,
+        private readonly HtmlParser $htmlParser,
+        private readonly SrcOriginClassifier $srcOriginClassifier = new SrcOriginClassifier(),
+    ) {}
+
+    /**
+     * Scan all RTE fields and return validation issues.
+     *
+     * @param string|null     $limitToTable   Restrict scan to a specific table (e.g. 'tt_content')
+     * @param list<SrcOrigin> $includeOrigins origins that would otherwise be
+     *                                        skipped ({@see SrcOrigin::defaultSkipSet()}) but
+     *                                        should still produce MissingFileUid issues
+     */
+    public function validate(?string $limitToTable = null, array $includeOrigins = []): ValidationResult
+    {
+        $result  = new ValidationResult();
+        $records = $this->findAffectedRecords($limitToTable);
+
+        foreach ($records as $record) {
+            $tableName = $record['tablename'];
+            $rawRecuid = $record['recuid'];
+            $field     = $record['field'];
+
+            if (!is_string($tableName)) {
+                continue; // @codeCoverageIgnore
+            }
+
+            if (!is_string($field)) {
+                continue; // @codeCoverageIgnore
+            }
+
+            if (!is_int($rawRecuid) && !is_string($rawRecuid)) {
+                continue; // @codeCoverageIgnore
+            }
+
+            $recuid = (int) $rawRecuid;
+
+            $currentValue = $this->fetchFieldValue($tableName, $recuid, $field);
+
+            if ($currentValue === null) {
+                continue;
+            }
+
+            if ($currentValue === '') {
+                continue;
+            }
+
+            $result->incrementScannedRecords();
+            $issues = $this->validateHtml($currentValue, $tableName, $recuid, $field, $result, $includeOrigins);
+
+            foreach ($issues as $issue) {
+                $result->addIssue($issue);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Apply fixes for all fixable issues in the result.
+     *
+     * @return int Number of records updated
+     */
+    public function fix(ValidationResult $result): int
+    {
+        $fixableIssues = $result->getFixableIssues();
+
+        if ($fixableIssues === []) {
+            return 0;
+        }
+
+        // Group issues by table:uid:field for batch processing
+        $grouped = $this->groupIssuesByRecord($fixableIssues);
+
+        $updatedCount = 0;
+
+        foreach ($grouped as $key => $issues) {
+            [$tableName, $uid, $field] = explode(':', $key, 3);
+            $recuid                    = (int) $uid;
+
+            $currentValue = $this->fetchFieldValue($tableName, $recuid, $field);
+
+            if ($currentValue === null) {
+                continue;
+            }
+
+            $updatedValue = $this->applyFixes($currentValue, $issues);
+
+            if ($updatedValue === $currentValue) {
+                continue;
+            }
+
+            $this->writeFieldValue($tableName, $recuid, $field, $updatedValue);
+            ++$updatedCount;
+        }
+
+        return $updatedCount;
+    }
+
+    /**
+     * Find records with RTE image references via sys_refindex.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function findAffectedRecords(?string $limitToTable = null): array
+    {
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable('sys_refindex');
+        $queryBuilder->getRestrictions()->removeAll();
+
+        $queryBuilder
+            ->select('tablename', 'recuid', 'field')
+            ->from('sys_refindex')
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'softref_key',
+                    $queryBuilder->createNamedParameter('rtehtmlarea_images'),
+                ),
+                $queryBuilder->expr()->eq(
+                    'ref_table',
+                    $queryBuilder->createNamedParameter('sys_file'),
+                ),
+            )
+            ->groupBy('tablename', 'recuid', 'field');
+
+        if ($limitToTable !== null) {
+            $queryBuilder->andWhere(
+                $queryBuilder->expr()->eq(
+                    'tablename',
+                    $queryBuilder->createNamedParameter($limitToTable),
+                ),
+            );
+        }
+
+        return $queryBuilder
+            ->executeQuery()
+            ->fetchAllAssociative();
+    }
+
+    /**
+     * Validate HTML content and return issues found.
+     *
+     * @param list<SrcOrigin> $includeOrigins origins that would otherwise be
+     *                                        skipped but should still be reported
+     *
+     * @return list<ValidationIssue>
+     */
+    public function validateHtml(
+        string $html,
+        string $table,
+        int $uid,
+        string $field,
+        ?ValidationResult $result = null,
+        array $includeOrigins = [],
+    ): array {
+        $splitContent = $this->htmlParser->splitTags('img', $html);
+        $issues       = [];
+        $imgIndex     = 0;
+
+        foreach ($splitContent as $part) {
+            if (!is_string($part)) {
+                continue; // @codeCoverageIgnore
+            }
+
+            if (!str_starts_with($part, '<img')) {
+                continue;
+            }
+
+            $result?->incrementScannedImages();
+
+            $attributes    = $this->htmlParser->get_tag_attributes($part);
+            $tagAttributes = $attributes[0] ?? [];
+
+            if (!is_array($tagAttributes)) {
+                ++$imgIndex; // @codeCoverageIgnore
+
+                continue; // @codeCoverageIgnore
+            }
+
+            $src     = $this->getStringAttribute($tagAttributes, 'src');
+            $fileUid = $this->getStringAttribute($tagAttributes, 'data-htmlarea-file-uid');
+
+            $issue = $this->detectIssue($src, $fileUid, $table, $uid, $field, $imgIndex, $result, $includeOrigins);
+
+            if ($issue instanceof ValidationIssue) {
+                $issues[] = $issue;
+            }
+
+            ++$imgIndex;
+        }
+
+        // Detect nested link wrappers: <a><a><img data-htmlarea-file-uid="..."></a></a> (#667)
+        $nestedLinkIssues = $this->detectNestedLinkWrappers($html, $table, $uid, $field);
+
+        return [...$issues, ...$nestedLinkIssues];
+    }
+
+    /**
+     * Detect what kind of issue (if any) exists for a single img tag.
+     *
+     * @param list<SrcOrigin> $includeOrigins origins reported even if in the
+     *                                        default skip set
+     */
+    private function detectIssue(
+        ?string $src,
+        ?string $fileUidStr,
+        string $table,
+        int $uid,
+        string $field,
+        int $imgIndex,
+        ?ValidationResult $result = null,
+        array $includeOrigins = [],
+    ): ?ValidationIssue {
+        // Missing file-uid attribute
+        if ($fileUidStr === null || $fileUidStr === '') {
+            $origin = $this->srcOriginClassifier->classify($src);
+
+            if ($this->shouldSkipOrigin($origin, $includeOrigins)) {
+                $result?->recordSkipped($origin);
+
+                return null;
+            }
+
+            return new ValidationIssue(
+                type: ValidationIssueType::MissingFileUid,
+                table: $table,
+                uid: $uid,
+                field: $field,
+                fileUid: null,
+                currentSrc: $src,
+                expectedSrc: null,
+                imgIndex: $imgIndex,
+            );
+        }
+
+        $fileUid = (int) $fileUidStr;
+
+        // Try to resolve the FAL file
+        try {
+            $file = $this->resourceFactory->getFileObject($fileUid);
+        } catch (FileDoesNotExistException) {
+            return new ValidationIssue(
+                type: ValidationIssueType::OrphanedFileUid,
+                table: $table,
+                uid: $uid,
+                field: $field,
+                fileUid: $fileUid,
+                currentSrc: $src,
+                expectedSrc: null,
+                imgIndex: $imgIndex,
+            );
+        }
+
+        $rawPublicUrl = $file->getPublicUrl();
+
+        if ($rawPublicUrl === null || $rawPublicUrl === '') {
+            return null;
+        }
+
+        // Normalize publicUrl to site-root-absolute form with leading slash.
+        // TYPO3's Local driver returns "fileadmin/..." (no leading slash) while
+        // the RTE stores "/fileadmin/..." — both refer to the same resource.
+        // See issue #778.
+        $publicUrl = $this->normalizePublicUrl($rawPublicUrl);
+
+        // Check for processed image URL
+        if ($src !== null && str_contains($src, '/_processed_/')) {
+            return new ValidationIssue(
+                type: ValidationIssueType::ProcessedImageSrc,
+                table: $table,
+                uid: $uid,
+                field: $field,
+                fileUid: $fileUid,
+                currentSrc: $src,
+                expectedSrc: $publicUrl,
+                imgIndex: $imgIndex,
+            );
+        }
+
+        // Check for src mismatch. The publicUrl is normalized to leading-slash
+        // form, so only a stored leading-slash src ("/fileadmin/x") is clean; a
+        // slashless src ("fileadmin/x") is a broken relative URL and must be
+        // reported as a mismatch and repaired (#778, #837).
+        if ($src !== null && $src !== '' && !$this->srcMatchesPublicUrl($src, $publicUrl)) {
+            return new ValidationIssue(
+                type: ValidationIssueType::SrcMismatch,
+                table: $table,
+                uid: $uid,
+                field: $field,
+                fileUid: $fileUid,
+                currentSrc: $src,
+                expectedSrc: $publicUrl,
+                imgIndex: $imgIndex,
+            );
+        }
+
+        // Check for broken/empty src
+        if ($src === null || $src === '') {
+            return new ValidationIssue(
+                type: ValidationIssueType::BrokenSrc,
+                table: $table,
+                uid: $uid,
+                field: $field,
+                fileUid: $fileUid,
+                currentSrc: $src,
+                expectedSrc: $publicUrl,
+                imgIndex: $imgIndex,
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * Decide whether a src origin should be suppressed from reporting.
+     *
+     * Default-skipped origins ({@see SrcOrigin::defaultSkipSet()}) can be
+     * re-enabled by listing them in $includeOrigins.
+     *
+     * @param list<SrcOrigin> $includeOrigins
+     */
+    private function shouldSkipOrigin(SrcOrigin $origin, array $includeOrigins): bool
+    {
+        if (!in_array($origin, SrcOrigin::defaultSkipSet(), true)) {
+            return false;
+        }
+
+        return !in_array($origin, $includeOrigins, true);
+    }
+
+    /**
+     * Normalize a FAL public URL to a site-root-absolute form with leading slash.
+     *
+     * The Local driver returns paths like "fileadmin/image.jpg" (no leading
+     * slash), while the RTE stores "/fileadmin/image.jpg". Both refer to the
+     * same resource; using the slashless form as a replacement breaks frontend
+     * and backend image rendering (#778).
+     *
+     * Absolute URLs (http://, https://, //example.com) are returned unchanged.
+     */
+    private function normalizePublicUrl(string $publicUrl): string
+    {
+        if (
+            str_starts_with($publicUrl, 'http://')
+            || str_starts_with($publicUrl, 'https://')
+            || str_starts_with($publicUrl, '//')
+        ) {
+            return $publicUrl;
+        }
+
+        return '/' . ltrim($publicUrl, '/');
+    }
+
+    /**
+     * Check whether a stored src is equivalent to a normalized publicUrl.
+     *
+     * {@see normalizePublicUrl()} already guarantees that $publicUrl carries a
+     * leading slash, so a strict comparison is both sufficient and correct: a
+     * stored "/fileadmin/x" matches, while a slashless "fileadmin/x" — a broken
+     * relative URL produced by older upgrade wizards — is correctly reported as
+     * a mismatch and repaired to the leading-slash form (#778, #837).
+     */
+    private function srcMatchesPublicUrl(string $src, string $publicUrl): bool
+    {
+        return $src === $publicUrl;
+    }
+
+    /**
+     * Apply fixes to HTML content for the given issues.
+     *
+     * @param list<ValidationIssue> $issues
+     */
+    private function applyFixes(string $html, array $issues): string
+    {
+        // Collapse nested link wrappers first (structural fix) — #667
+        $html = $this->collapseNestedLinks($html, $issues);
+
+        // Build a map of fileUid => expectedSrc for quick lookup
+        $fixMap = [];
+
+        foreach ($issues as $issue) {
+            if ($issue->fileUid !== null && $issue->expectedSrc !== null) {
+                $fixMap[$issue->fileUid] = $issue->expectedSrc;
+            }
+        }
+
+        if ($fixMap === []) {
+            return $html;
+        }
+
+        /** @var string[] $splitContent */
+        $splitContent = $this->htmlParser->splitTags('img', $html);
+        $changed      = false;
+
+        foreach ($splitContent as $key => $part) {
+            if (!is_string($part)) {
+                continue; // @codeCoverageIgnore
+            }
+
+            if (!str_starts_with($part, '<img')) {
+                continue;
+            }
+
+            $attributes    = $this->htmlParser->get_tag_attributes($part);
+            $tagAttributes = $attributes[0] ?? [];
+
+            if (!is_array($tagAttributes)) {
+                continue; // @codeCoverageIgnore
+            }
+
+            $fileUidStr = $this->getStringAttribute($tagAttributes, 'data-htmlarea-file-uid');
+
+            if ($fileUidStr === null) {
+                continue;
+            }
+
+            $fileUid = (int) $fileUidStr;
+
+            if (!isset($fixMap[$fileUid])) {
+                continue;
+            }
+
+            $currentSrc = $this->getStringAttribute($tagAttributes, 'src');
+            $newSrc     = $fixMap[$fileUid];
+
+            if ($currentSrc === $newSrc) {
+                continue;
+            }
+
+            if ($currentSrc === null) {
+                // No src attribute exists — insert one after <img
+                $splitContent[$key] = str_replace(
+                    '<img ',
+                    '<img src="' . $newSrc . '" ',
+                    $part,
+                );
+            } else {
+                // Replace existing src (empty or non-empty)
+                $splitContent[$key] = str_replace(
+                    'src="' . $currentSrc . '"',
+                    'src="' . $newSrc . '"',
+                    $part,
+                );
+            }
+
+            $changed = true;
+        }
+
+        if (!$changed) {
+            return $html;
+        }
+
+        return implode('', $splitContent);
+    }
+
+    /**
+     * Fetch the current field value from the database.
+     */
+    private function fetchFieldValue(string $tableName, int $recuid, string $field): ?string
+    {
+        $queryBuilder = $this->connectionPool->getQueryBuilderForTable($tableName);
+        $queryBuilder->getRestrictions()->removeAll();
+
+        $result = $queryBuilder
+            ->select($field)
+            ->from($tableName)
+            ->where(
+                $queryBuilder->expr()->eq(
+                    'uid',
+                    $queryBuilder->createNamedParameter($recuid, Connection::PARAM_INT),
+                ),
+            )
+            ->executeQuery()
+            ->fetchOne();
+
+        return is_string($result) ? $result : null;
+    }
+
+    /**
+     * Write updated field value via direct SQL.
+     */
+    private function writeFieldValue(string $tableName, int $recuid, string $field, string $value): void
+    {
+        $connection = $this->connectionPool->getConnectionForTable($tableName);
+        $connection->update(
+            $tableName,
+            [$field => $value],
+            ['uid'  => $recuid],
+        );
+    }
+
+    /**
+     * Group fixable issues by table:uid:field key.
+     *
+     * @param list<ValidationIssue> $issues
+     *
+     * @return array<string, list<ValidationIssue>>
+     */
+    private function groupIssuesByRecord(array $issues): array
+    {
+        $grouped = [];
+
+        foreach ($issues as $issue) {
+            $key             = $issue->table . ':' . $issue->uid . ':' . $issue->field;
+            $grouped[$key][] = $issue;
+        }
+
+        return $grouped;
+    }
+
+    /**
+     * Detect nested <a><a><img data-htmlarea-file-uid></a></a> patterns (#667).
+     *
+     * @return list<ValidationIssue>
+     */
+    private function detectNestedLinkWrappers(string $html, string $table, int $uid, string $field): array
+    {
+        $issues = [];
+
+        $matched = preg_match_all(
+            '/<a\b[^>]*>\s*<a\b[^>]*>\s*<img\b[^>]*\bdata-htmlarea-file-uid\s*=\s*"(\d+)"[^>]*>\s*<\/a>\s*<\/a>/i',
+            $html,
+            $matches,
+            PREG_SET_ORDER,
+        );
+
+        if ($matched === false || $matched === 0) {
+            return [];
+        }
+
+        foreach ($matches as $index => $match) {
+            // imgIndex here is the Nth nested-link match, not the image position in the document.
+            // This is sufficient because collapseNestedLinks() operates on the full HTML, not by index.
+            $issues[] = new ValidationIssue(
+                type: ValidationIssueType::NestedLinkWrapper,
+                table: $table,
+                uid: $uid,
+                field: $field,
+                fileUid: (int) $match[1],
+                currentSrc: null,
+                expectedSrc: null,
+                imgIndex: $index,
+            );
+        }
+
+        return $issues;
+    }
+
+    /**
+     * Collapse nested <a><a><img></a></a> into <a><img></a>, keeping the outer <a>'s attributes.
+     *
+     * Outer-wins is intentional: in issue #667, renderInlineLink() adds the outer <a> with
+     * resolved attributes (t3:// → real URL), while the inner <a> retains unresolved attributes.
+     * In practice, both <a> tags have identical attributes since the bug duplicates them.
+     * DOMDocument cannot be used here because it normalizes invalid nested <a> tags,
+     * making the nesting undetectable via DOM traversal.
+     *
+     * @param list<ValidationIssue> $issues
+     */
+    private function collapseNestedLinks(string $html, array $issues): string
+    {
+        $hasNestedLinkIssues = false;
+
+        foreach ($issues as $issue) {
+            if ($issue->type === ValidationIssueType::NestedLinkWrapper) {
+                $hasNestedLinkIssues = true;
+
+                break;
+            }
+        }
+
+        if (!$hasNestedLinkIssues) {
+            return $html;
+        }
+
+        $pattern = '/(<a\b[^>]*>)\s*<a\b[^>]*>\s*(<img\b[^>]*\bdata-htmlarea-file-uid\b[^>]*>)\s*<\/a>\s*(<\/a>)/i';
+
+        // Loop to handle triple+ nesting: each pass removes one layer.
+        // Iteration limit prevents theoretical unbounded execution on pathological input.
+        $count          = 0;
+        $iterationLimit = 10;
+
+        do {
+            $collapsed = preg_replace($pattern, '$1$2$3', $html, -1, $count);
+            $html      = is_string($collapsed) ? $collapsed : $html;
+            --$iterationLimit;
+        } while ($count > 0 && $iterationLimit > 0);
+
+        return $html;
+    }
+
+    /**
+     * Safely extract a string attribute from parsed tag attributes.
+     *
+     * @param array<mixed, mixed> $attributes
+     */
+    private function getStringAttribute(array $attributes, string $name): ?string
+    {
+        $value = $attributes[$name] ?? null;
+
+        return is_string($value) ? $value : null;
+    }
+}

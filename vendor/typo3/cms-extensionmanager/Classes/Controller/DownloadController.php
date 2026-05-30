@@ -1,0 +1,389 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Extensionmanager\Controller;
+
+use Psr\Http\Message\ResponseInterface;
+use TYPO3\CMS\Core\Configuration\ExtensionConfiguration;
+use TYPO3\CMS\Core\Http\AllowedMethodsTrait;
+use TYPO3\CMS\Core\Type\ContextualFeedbackSeverity;
+use TYPO3\CMS\Core\Utility\ExtensionManagementUtility;
+use TYPO3\CMS\Core\View\ViewInterface;
+use TYPO3\CMS\Extbase\Http\ForwardResponse;
+use TYPO3\CMS\Extbase\Mvc\View\JsonView;
+use TYPO3\CMS\Extbase\Utility\LocalizationUtility;
+use TYPO3\CMS\Extensionmanager\Domain\Model\Extension;
+use TYPO3\CMS\Extensionmanager\Domain\Repository\ExtensionRepository;
+use TYPO3\CMS\Extensionmanager\Exception\ExtensionManagerException;
+use TYPO3\CMS\Extensionmanager\Service\ExtensionManagementService;
+
+/**
+ * Controller for actions related to the TER download of an extension
+ * @internal This class is a specific controller implementation and is not considered part of the Public TYPO3 API.
+ */
+class DownloadController extends AbstractController
+{
+    use AllowedMethodsTrait;
+
+    /**
+     * @var JsonView
+     */
+    protected ViewInterface $view;
+
+    public function __construct(
+        private readonly ExtensionRepository $extensionRepository,
+        private readonly ExtensionManagementService $managementService,
+        private readonly ExtensionConfiguration $extensionConfiguration,
+    ) {
+        $this->defaultViewObjectName = JsonView::class;
+    }
+
+    /**
+     * Check extension dependencies
+     */
+    public function checkDependenciesAction(int $extension): ResponseInterface
+    {
+        $extension = $this->extensionRepository->findByUid($extension);
+        $message = '';
+        $title = '';
+        $hasDependencies = false;
+        $hasErrors = false;
+        $dependencyTypes = null;
+        $configuration = [
+            'value' => [
+                'dependencies' => [],
+            ],
+        ];
+        $isAutomaticInstallationEnabled = (bool)$this->extensionConfiguration->get('extensionmanager', 'automaticInstallation');
+        if (!$isAutomaticInstallationEnabled) {
+            // if automatic installation is deactivated, no dependency check is needed (download only)
+            $action = 'installExtensionWithoutSystemDependencyCheck';
+        } else {
+            $action = 'installFromTer';
+            try {
+                $dependencyTypes = $this->managementService->getAndResolveDependencies($extension);
+                if (!empty($dependencyTypes)) {
+                    $hasDependencies = true;
+                    $message = '<p>' . $this->translate('downloadExtension.dependencies.headline') . '</p>';
+                    foreach ($dependencyTypes as $dependencyType => $dependencies) {
+                        $extensions = '';
+                        foreach ($dependencies as $extensionKey => $dependency) {
+                            if (!isset($configuration['value']['dependencies'][$dependencyType])) {
+                                $configuration['value']['dependencies'][$dependencyType] = [];
+                            }
+                            $configuration['value']['dependencies'][$dependencyType][$extensionKey] = [
+                                '_exclude' => [
+                                    'categoryIndexFromStringOrNumber',
+                                ],
+                            ];
+                            $extensions .= $this->translate(
+                                'downloadExtension.dependencies.extensionWithVersion',
+                                [
+                                    $extensionKey, $dependency->getVersion(),
+                                ]
+                            ) . '<br />';
+                        }
+                        $message .= $this->translate(
+                            'downloadExtension.dependencies.typeHeadline',
+                            [
+                                $this->translate('downloadExtension.dependencyType.' . $dependencyType),
+                                $extensions,
+                            ]
+                        );
+                    }
+                    $title = $this->translate('downloadExtension.dependencies.resolveAutomatically');
+                }
+            } catch (\Exception $e) {
+                $hasErrors = true;
+                $title = $this->translate('downloadExtension.dependencies.errorTitle');
+                $message = $e->getMessage();
+            }
+        }
+
+        $url = $this->uriBuilder->uriFor(
+            $action,
+            ['extension' => $extension->uid, 'format' => 'json'],
+            'Download'
+        );
+        $this->view->setConfiguration($configuration);
+        $this->view->assign('value', [
+            'dependencies' => $dependencyTypes,
+            'url' => $url,
+            'message' => $message,
+            'hasErrors' => $hasErrors,
+            'hasDependencies' => $hasDependencies,
+            'title' => $title,
+        ]);
+
+        return $this->jsonResponse();
+    }
+
+    /**
+     * Defines which view object should be used for the installFromTer action
+     */
+    protected function initializeInstallFromTerAction()
+    {
+        // @todo: Switch to JsonView
+        $this->defaultViewObjectName = null;
+    }
+
+    /**
+     * Install an extension from TER action
+     */
+    public function installFromTerAction(int $extension): ResponseInterface
+    {
+        $extension = $this->extensionRepository->findByUid($extension);
+        $this->assertAllowedHttpMethod($this->request, 'POST');
+
+        [$result, $errorMessages] = $this->installFromTer($extension);
+        $isAutomaticInstallationEnabled = (bool)$this->extensionConfiguration->get('extensionmanager', 'automaticInstallation');
+        $this->view->assignMultiple([
+            'result'  => $result,
+            'extension' => $extension,
+            'isAutomaticInstallationEnabled' => $isAutomaticInstallationEnabled,
+            'unresolvedDependencies' => $errorMessages,
+        ]);
+
+        return $this->htmlResponse();
+    }
+
+    /**
+     * Check extension dependencies with special dependencies
+     */
+    public function installExtensionWithoutSystemDependencyCheckAction(int $extension): ResponseInterface
+    {
+        $this->assertAllowedHttpMethod($this->request, 'POST');
+
+        $this->managementService->setSkipDependencyCheck(true);
+        return (new ForwardResponse('installFromTer'))->withArguments(['extension' => $extension]);
+    }
+
+    /**
+     * Check distribution dependencies without changing the installation state.
+     * Returns whether there are unresolved dependency errors for activation.
+     */
+    public function checkDistributionDependenciesAction(int $extension): ResponseInterface
+    {
+        $this->assertAllowedHttpMethod($this->request, 'POST');
+
+        if (!ExtensionManagementUtility::isLoaded('impexp')) {
+            return $this->jsonResponse(json_encode([
+                'installed' => false,
+                'hasDependencyErrors' => false,
+                'error' => $this->translate('extensionList.installImpexp'),
+            ], JSON_THROW_ON_ERROR));
+        }
+
+        $extension = $this->extensionRepository->findByUid($extension);
+
+        try {
+            $dependencyTypes = $this->managementService->getAndResolveDependencies($extension);
+            $dependencyErrors = $this->managementService->getDependencyErrors();
+
+            if (!empty($dependencyErrors)) {
+                return $this->jsonResponse(json_encode([
+                    'installed' => false,
+                    'hasDependencyErrors' => true,
+                    'dependencies' => $dependencyErrors,
+                    'skipDependencyUri' => $this->uriBuilder->reset()->uriFor(
+                        'installDistributionWithoutDependencyCheck',
+                        ['extension' => $extension->uid],
+                        'Download'
+                    ),
+                ], JSON_THROW_ON_ERROR));
+            }
+
+            return $this->jsonResponse(json_encode([
+                'installed' => false,
+                'hasDependencyErrors' => false,
+            ], JSON_THROW_ON_ERROR));
+        } catch (\Exception $e) {
+            return $this->jsonResponse(json_encode([
+                'installed' => false,
+                'hasDependencyErrors' => false,
+                'error' => $e->getMessage(),
+            ], JSON_THROW_ON_ERROR));
+        }
+    }
+
+    /**
+     * Install a distribution from TER.
+     */
+    public function installDistributionAction(int $extension): ResponseInterface
+    {
+        $extension = $this->extensionRepository->findByUid($extension);
+        $this->assertAllowedHttpMethod($this->request, 'POST');
+
+        if (!ExtensionManagementUtility::isLoaded('impexp')) {
+            return $this->jsonResponse(json_encode([
+                'success' => false,
+                'error' => $this->translate('extensionList.installImpexp'),
+            ], JSON_THROW_ON_ERROR));
+        }
+
+        [$result, $errorMessages] = $this->installFromTer($extension);
+        if (!$result) {
+            if ($errorMessages !== []) {
+                return $this->jsonResponse(json_encode([
+                    'success' => false,
+                    'extensionKey' => $extension->extensionKey,
+                    'dependencies' => $errorMessages,
+                    'skipDependencyUri' => $this->uriBuilder->reset()->uriFor(
+                        'installDistributionWithoutDependencyCheck',
+                        ['extension' => $extension->uid],
+                        'Download'
+                    ),
+                ], JSON_THROW_ON_ERROR));
+            }
+            return $this->jsonResponse(json_encode([
+                'success' => false,
+                'error' => $this->translate('downloadExtension.dependencies.errorTitle'),
+            ], JSON_THROW_ON_ERROR));
+        }
+
+        $this->addFlashMessage(
+            LocalizationUtility::translate(
+                'distribution.welcome.message',
+                'extensionmanager',
+                [$extension->extensionKey]
+            ) ?? '',
+            LocalizationUtility::translate('distribution.welcome.headline', 'extensionmanager') ?? ''
+        );
+
+        return $this->jsonResponse(json_encode(['success' => true], JSON_THROW_ON_ERROR));
+    }
+
+    /**
+     * Install a distribution and omit dependency checking.
+     */
+    public function installDistributionWithoutDependencyCheckAction(int $extension): ResponseInterface
+    {
+        $this->assertAllowedHttpMethod($this->request, 'POST');
+
+        $this->managementService->setSkipDependencyCheck(true);
+        return (new ForwardResponse('installDistribution'))->withArguments(['extension' => $extension]);
+    }
+
+    /**
+     * Update an extension. Makes no sanity check but directly searches highest
+     * available version from TER and updates. Update check is done by the list
+     * already. This method should only be called if we are sure that there is
+     * an update.
+     */
+    protected function updateExtensionAction(): ResponseInterface
+    {
+        $this->assertAllowedHttpMethod($this->request, 'POST');
+
+        $extensionKey = (string)$this->request->getArgument('extension');
+        $version = (string)$this->request->getArgument('version');
+        $extension = $this->extensionRepository->findOneByExtensionKeyAndVersion($extensionKey, $version);
+        if ($extension === null) {
+            $extension = $this->extensionRepository->findHighestAvailableVersion($extensionKey);
+        }
+        $installedExtensions = ExtensionManagementUtility::getLoadedExtensionListArray();
+        try {
+            if (in_array($extensionKey, $installedExtensions, true)) {
+                // To resolve new dependencies the extension is installed again
+                $this->managementService->installExtension($extension);
+            } else {
+                $this->managementService->downloadMainExtension($extension);
+            }
+            $this->addFlashMessage(
+                $this->translate('extensionList.updateFlashMessage.body', [$extensionKey]),
+                $this->translate('extensionList.updateFlashMessage.title')
+            );
+        } catch (\Exception $e) {
+            $this->addFlashMessage($e->getMessage(), '', ContextualFeedbackSeverity::ERROR);
+        }
+
+        return $this->jsonResponse();
+    }
+
+    /**
+     * Show update comments for extensions that can be updated.
+     * Fetches update comments for all versions between the current
+     * installed and the highest version.
+     */
+    protected function updateCommentForUpdatableVersionsAction(): ResponseInterface
+    {
+        $extensionKey = (string)$this->request->getArgument('extension');
+        $versionStart = (int)$this->request->getArgument('integerVersionStart');
+        $versionStop = (int)$this->request->getArgument('integerVersionStop');
+        $updateComments = [];
+        $updatableVersions = $this->extensionRepository->findByVersionRangeAndExtensionKeyOrderedByVersion(
+            $extensionKey,
+            $versionStart,
+            $versionStop,
+            false
+        );
+        $highestPossibleVersion = false;
+
+        foreach ($updatableVersions as $updatableVersion) {
+            if ($highestPossibleVersion === false) {
+                $highestPossibleVersion = $updatableVersion->version;
+            }
+            $updateComments[$updatableVersion->version] = $updatableVersion->updateComment;
+        }
+
+        $this->view->assign('value', [
+            'updateComments' => $updateComments,
+            'url' => $this->uriBuilder->uriFor(
+                'updateExtension',
+                ['extension' => $extensionKey, 'version' => $highestPossibleVersion]
+            ),
+        ]);
+
+        return $this->jsonResponse();
+    }
+
+    /**
+     * Install an extension from TER
+     * Downloads the extension, resolves dependencies and installs it
+     *
+     * @return array{
+     *     0: array{
+     *         downloaded?: array<string, Extension>,
+     *         updated?: array<string, Extension>,
+     *         installed?: array<string, string>,
+     *     }|false,
+     *     1: array<string, array<int, array{code: int, message: string}>>,
+     * }
+     */
+    protected function installFromTer(Extension $extension): array
+    {
+        $result = false;
+        $errorMessages = [];
+        try {
+            $isAutomaticInstallationEnabled = (bool)$this->extensionConfiguration->get('extensionmanager', 'automaticInstallation');
+            $this->managementService->setAutomaticInstallationEnabled($isAutomaticInstallationEnabled);
+            if (($result = $this->managementService->installExtension($extension)) === false) {
+                $errorMessages = $this->managementService->getDependencyErrors();
+            }
+        } catch (ExtensionManagerException $e) {
+            $errorMessages = [
+                $extension->extensionKey => [
+                    [
+                        'code' => $e->getCode(),
+                        'message' => $e->getMessage(),
+                    ],
+                ],
+            ];
+        }
+
+        return [$result, $errorMessages];
+    }
+}

@@ -1,0 +1,12 @@
+plugin.tx_fluidfpdf {
+	view {
+		# cat=plugin.tx_fluidfpdf/file; type=string; label=LLL:EXT:fluid_fpdf/Resources/Private/Language/locallang_constants.xlf:tx_fluidfpdf_constants.view_template_root_path
+		templateRootPath = EXT:fluid_fpdf/Resources/Private/Templates/
+		# cat=plugin.tx_fluidfpdf/file; type=string; label=LLL:EXT:fluid_fpdf/Resources/Private/Language/locallang_constants.xlf:tx_fluidfpdf_constants.view_partials_root_path
+		partialRootPath = EXT:fluid_fpdf/Resources/Private/Partials/
+	}
+	persistence {
+		# cat=plugin.tx_fluidfpdf//a; type=string; label=LLL:EXT:fluid_fpdf/Resources/Private/Language/locallang_constants.xlf:tx_fluidfpdf_constants.storage_pid
+		storagePid =
+	}
+}

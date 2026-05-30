@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<xliff version="1.0">
+	<file source-language="en" datatype="plaintext" original="messages" date="2014-12-27T14:55:41Z" product-name="parsedown_extra">
+		<header/>
+		<body>
+			<trans-unit id="tx_parsedownextra_constants.lightbox_enabled">
+				<source>Enable LightBox for content elements/images</source>
+			</trans-unit>
+			<trans-unit id="tx_parsedownextra_constants.lightbox_theme">
+				<source>LightBox theme, possible values 1-5</source>
+			</trans-unit>
+			<trans-unit id="tx_parsedownextra_constants.cssUrl">
+				<source>Base url for CSS theme</source>
+			</trans-unit>
+			<trans-unit id="tx_parsedownextra_constants.jsUrl">
+				<source>Base url for Script</source>
+			</trans-unit>
+			<trans-unit id="tx_parsedownextra_constants.lightbox_css_class">
+				<source>CSS class for lightbox</source>
+			</trans-unit>
+			<trans-unit id="tx_parsedownextra_constants.lightbox_rel_attribute">
+				<source>CSS relation attribute for lightbox</source>
+			</trans-unit>
+
+
+			<!--=== Container ===-->
+		</body>
+	</file>
+</xliff>

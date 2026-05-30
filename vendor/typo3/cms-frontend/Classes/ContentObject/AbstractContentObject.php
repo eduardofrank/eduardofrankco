@@ -1,0 +1,81 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Frontend\ContentObject;
+
+use Psr\Http\Message\ServerRequestInterface;
+use TYPO3\CMS\Core\Domain\Repository\PageRepository;
+use TYPO3\CMS\Core\Page\PageRenderer;
+use TYPO3\CMS\Core\Utility\GeneralUtility;
+use TYPO3\CMS\Frontend\ContentObject\Exception\ContentRenderingException;
+
+/**
+ * Contains an abstract class for all tslib content class implementations.
+ */
+abstract class AbstractContentObject
+{
+    /**
+     * Always set via setRequest() by ContentObjectFactory after instantiation
+     */
+    protected ServerRequestInterface $request;
+
+    protected ?ContentObjectRenderer $cObj = null;
+
+    /**
+     * Renders the content object.
+     *
+     * @param mixed $conf Array of TypoScript properties (marked as "mixed" currently because we don't know what we're receiving)
+     * @return string
+     * @throws ContentRenderingException
+     * @throws \Exception
+     */
+    abstract public function render($conf = []);
+
+    public function getContentObjectRenderer(): ContentObjectRenderer
+    {
+        return $this->cObj;
+    }
+
+    public function setRequest(ServerRequestInterface $request): void
+    {
+        $this->request = $request;
+    }
+
+    public function setContentObjectRenderer(ContentObjectRenderer $cObj): void
+    {
+        $this->cObj = $cObj;
+        // Provide the ContentObjectRenderer to the request as well, for code
+        // that only passes the request to more underlying layers, like Extbase does.
+        // Also makes sure the request in a Fluid RenderingContext also has the current
+        // content object available.
+        $this->request = $this->request->withAttribute('currentContentObject', $cObj);
+    }
+
+    protected function getPageRepository(): PageRepository
+    {
+        return GeneralUtility::makeInstance(PageRepository::class);
+    }
+
+    /**
+     * @deprecated since TYPO3 v14, will be removed in TYPO3 v15.
+     */
+    protected function getPageRenderer(): PageRenderer
+    {
+        trigger_error('AbstractContentObject->getPageRenderer() is deprecated since version 14.3. Use dependency injection to retrieve an instance if needed.', E_USER_DEPRECATED);
+        return GeneralUtility::makeInstance(PageRenderer::class);
+    }
+}

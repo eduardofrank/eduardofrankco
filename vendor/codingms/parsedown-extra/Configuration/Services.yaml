@@ -1,0 +1,13 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+  CodingMs\ParsedownExtra\:
+    resource: '../Classes/*'
+
+  CodingMs\ParsedownExtra\EventListener\DrawItem:
+    tags:
+      - name: event.listener
+        identifier: 'parsedownExtraDrawItemEvent'

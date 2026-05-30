@@ -1,0 +1,475 @@
+<?php
+
+defined('TYPO3') or die();
+
+$tca = [
+    'ctrl' => [
+        'type' => 'file:type',
+    ],
+    'types' => [
+        TYPO3\CMS\Core\Resource\FileType::UNKNOWN->value => [
+            'showitem' => '
+                --div--;core.form.tabs:general,
+                    fileinfo, title, description, ranking, keywords,
+                    --palette--;;20, --palette--;;language,
+                --div--;core.form.tabs:metadata,
+                    creator, creator_tool, publisher, source, copyright,
+                    --palette--;;40,
+                    status,
+                --div--;core.form.tabs:categories,
+                    categories,
+                --div--;core.form.tabs:extended,
+            ',
+        ],
+        TYPO3\CMS\Core\Resource\FileType::TEXT->value => [
+            'showitem' => '
+                --div--;core.form.tabs:general,
+                    fileinfo, title, description, ranking, keywords,
+                    --palette--;;20, --palette--;;language,
+                --div--;core.form.tabs:metadata,
+                    creator, creator_tool, publisher, source, copyright, language,
+                    --palette--;;40,
+                    status,
+                --div--;core.form.tabs:categories,
+                    categories,
+                --div--;core.form.tabs:extended,
+            ',
+        ],
+        TYPO3\CMS\Core\Resource\FileType::IMAGE->value => [
+            'showitem' => '
+                --div--;core.form.tabs:general,
+                    fileinfo, title, description, ranking, keywords,
+                    --palette--;;20, --palette--;;language,
+                --div--;core.form.tabs:metadata,
+                    creator, creator_tool, publisher, source, copyright, language,
+                    --palette--;;40,
+                    --palette--;;30,
+                    --palette--;;60,
+                    status,
+                --div--;core.form.tabs:camera,
+                    color_space,
+                    --palette--;;50,
+                --div--;core.form.tabs:categories,
+                    categories,
+                --div--;core.form.tabs:extended,
+            ',
+        ],
+        TYPO3\CMS\Core\Resource\FileType::AUDIO->value => [
+            'showitem' => '
+                --div--;core.form.tabs:general,
+                    fileinfo, title, description, ranking, keywords,
+                    --palette--;;20, --palette--;;language,
+                --div--;core.form.tabs:metadata,
+                    creator, creator_tool, publisher, source, copyright, language,
+                    --palette--;;60,
+                    status,
+                --div--;core.form.tabs:audio,
+                    duration,
+                --div--;core.form.tabs:categories,
+                    categories,
+                --div--;core.form.tabs:extended,
+            ',
+        ],
+        TYPO3\CMS\Core\Resource\FileType::VIDEO->value => [
+            'showitem' => '
+                --div--;core.form.tabs:general,
+                    fileinfo, title, description, ranking, keywords,
+                    --palette--;;20, --palette--;;language,
+                --div--;core.form.tabs:metadata,
+                    creator, creator_tool, publisher, source, copyright, language,
+                    --palette--;;60,
+                    status,
+                --div--;core.form.tabs:video,
+                    duration,
+                --div--;core.form.tabs:categories,
+                    categories,
+                --div--;core.form.tabs:extended,
+            ',
+        ],
+        TYPO3\CMS\Core\Resource\FileType::APPLICATION->value => [
+            'showitem' => '
+                --div--;core.form.tabs:general,
+                    fileinfo, title, description, ranking, keywords,
+                    --palette--;;20, --palette--;;language,
+                --div--;core.form.tabs:metadata,
+                    creator, creator_tool, publisher, source, copyright, language,
+                    --palette--;;40,
+                    pages,
+                    --palette--;;50,
+                    --palette--;;60,
+                    status,
+                --div--;core.form.tabs:categories,
+                    categories,
+                --div--;core.form.tabs:extended,
+            ',
+        ],
+    ],
+    'palettes' => [
+        '20' => [
+            'label' => 'core.form.palettes:accessibility',
+            'showitem' => 'alternative, --linebreak--, caption, --linebreak--, download_name',
+        ],
+        '25' => [
+            'label' => 'core.form.palettes:accessibility',
+            'showitem' => 'caption, --linebreak--, download_name',
+        ],
+        '30' => [
+            'label' => 'core.form.palettes:gps',
+            'showitem' => 'latitude, longitude',
+        ],
+        '40' => [
+            'label' => 'core.form.palettes:geolocation',
+            'showitem' => 'location_country, location_region, location_city',
+        ],
+        '50' => [
+            'label' => 'core.form.palettes:metrics',
+            'showitem' => 'width, height, unit',
+        ],
+        '60' => [
+            'label' => 'core.form.palettes:contentdate',
+            'showitem' => 'content_creation_date, content_modification_date',
+        ],
+    ],
+    'columns' => [
+        'status' => [
+            'exclude' => true,
+            'label' => 'filemetadata.db:sys_file_metadata.status',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectSingle',
+                'items' => [
+                    [
+                        'label' => 'filemetadata.db:sys_file_metadata.status.1',
+                        'value' => 1,
+                        'icon' => 'actions-check',
+                    ],
+                    [
+                        'label' => 'filemetadata.db:sys_file_metadata.status.2',
+                        'value' => 2,
+                        'icon' => 'actions-clock',
+                    ],
+                    [
+                        'label' => 'filemetadata.db:sys_file_metadata.status.3',
+                        'value' => 3,
+                        'icon' => 'actions-view',
+                    ],
+                ],
+                'fieldWizard' => [
+                    'selectIcons' => [
+                        'disabled' => false,
+                    ],
+                ],
+            ],
+        ],
+        'keywords' => [
+            'exclude' => true,
+            'l10n_mode' => 'prefixLangTitle',
+            'label' => 'filemetadata.db:sys_file_metadata.keywords',
+            'config' => [
+                'type' => 'text',
+                'cols' => 40,
+                'rows' => 3,
+                'placeholder' => 'filemetadata.db:placeholder.keywords',
+            ],
+        ],
+        'caption' => [
+            'exclude' => true,
+            'l10n_mode' => 'prefixLangTitle',
+            'label' => 'filemetadata.db:sys_file_metadata.caption',
+            'config' => [
+                'type' => 'text',
+                'cols' => 40,
+                'rows' => 3,
+            ],
+        ],
+        'creator_tool' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.creator_tool',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'eval' => 'trim',
+            ],
+        ],
+        'download_name' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.download_name',
+            'config' => [
+                'type' => 'input',
+                'size' => 30,
+                'eval' => 'trim',
+            ],
+        ],
+        'creator' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.creator',
+            'config' => [
+                'type' => 'input',
+                'size' => 30,
+                'eval' => 'trim',
+            ],
+        ],
+        'publisher' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.publisher',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'eval' => 'trim',
+                'max' => 120,
+            ],
+        ],
+        'source' => [
+            'exclude' => true,
+            'label' => 'filemetadata.db:sys_file_metadata.source',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'eval' => 'trim',
+                'max' => 255,
+            ],
+        ],
+        'copyright' => [
+            'exclude' => true,
+            'label' => 'filemetadata.db:sys_file_metadata.copyright',
+            'config' => [
+                'type' => 'text',
+                'cols' => 40,
+                'rows' => 3,
+            ],
+        ],
+        'location_country' => [
+            'exclude' => true,
+            'l10n_display' => '',
+            'label' => 'filemetadata.db:sys_file_metadata.location_country',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'eval' => 'trim',
+                'max' => 45,
+                'behaviour' => [
+                    'allowLanguageSynchronization' => true,
+                ],
+            ],
+        ],
+        'location_region' => [
+            'exclude' => true,
+            'l10n_display' => '',
+            'label' => 'filemetadata.db:sys_file_metadata.location_region',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'eval' => 'trim',
+                'max' => 45,
+                'behaviour' => [
+                    'allowLanguageSynchronization' => true,
+                ],
+            ],
+        ],
+        'location_city' => [
+            'exclude' => true,
+            'l10n_display' => '',
+            'label' => 'filemetadata.db:sys_file_metadata.location_city',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'eval' => 'trim',
+                'max' => 45,
+                'behaviour' => [
+                    'allowLanguageSynchronization' => true,
+                ],
+            ],
+        ],
+        'latitude' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.latitude',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'eval' => 'trim',
+                'max' => 30,
+                'default' => '0.00000000000000',
+            ],
+        ],
+        'longitude' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.longitude',
+            'config' => [
+                'type' => 'input',
+                'size' => 20,
+                'eval' => 'trim',
+                'max' => 30,
+                'default' => '0.00000000000000',
+            ],
+        ],
+        'ranking' => [
+            'exclude' => true,
+            'label' => 'filemetadata.db:sys_file_metadata.ranking',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectSingle',
+                'minitems' => 1,
+                'items' => [
+                    ['label' => 0, 'value' => 0],
+                    ['label' => 1, 'value' => 1],
+                    ['label' => 2, 'value' => 2],
+                    ['label' => 3, 'value' => 3],
+                    ['label' => 4, 'value' => 4],
+                    ['label' => 5, 'value' => 5],
+                ],
+            ],
+        ],
+        'content_creation_date' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.content_creation_date',
+            'config' => [
+                'type' => 'datetime',
+                'format' => 'date',
+                'default' => time(),
+            ],
+        ],
+        'content_modification_date' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.content_modification_date',
+            'config' => [
+                'type' => 'datetime',
+                'format' => 'date',
+                'default' => time(),
+            ],
+        ],
+        'note' => [
+            'exclude' => true,
+            'label' => 'filemetadata.db:sys_file_metadata.note',
+            'config' => [
+                'type' => 'text',
+                'cols' => 40,
+                'rows' => 15,
+                'eval' => 'trim',
+            ],
+        ],
+        /*
+         * METRICS ###########################################
+         */
+        'unit' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.unit',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectSingle',
+                'items' => [
+                    ['label' => '', 'value' => ''],
+                    ['label' => 'filemetadata.db:sys_file_metadata.unit.px', 'value' => 'px'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.unit.cm', 'value' => 'cm'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.unit.in', 'value' => 'in'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.unit.mm', 'value' => 'mm'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.unit.m', 'value' => 'm'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.unit.p', 'value' => 'p'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.unit.pt', 'value' => 'pt'],
+                ],
+                'default' => '',
+                'readOnly' => true,
+                'dbFieldLength' => 3,
+            ],
+        ],
+        'duration' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.duration',
+            'config' => [
+                'type' => 'number',
+                'size' => 10,
+                'default' => 0,
+            ],
+        ],
+        'color_space' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.color_space',
+            'config' => [
+                'type' => 'select',
+                'renderType' => 'selectSingle',
+                'items' => [
+                    ['label' => '', 'value' => ''],
+                    ['label' => 'filemetadata.db:sys_file_metadata.color_space.RGB', 'value' => 'RGB'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.color_space.sRGB', 'value' => 'sRGB'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.color_space.CMYK', 'value' => 'CMYK'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.color_space.CMY', 'value' => 'CMY'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.color_space.YUV', 'value' => 'YUV'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.color_space.grey', 'value' => 'grey'],
+                    ['label' => 'filemetadata.db:sys_file_metadata.color_space.indx', 'value' => 'indx'],
+                ],
+                'default' => '',
+                'readOnly' => true,
+                'dbFieldLength' => 4,
+            ],
+        ],
+        'width' => [
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.width',
+            'config' => [
+                'type' => 'number',
+                'size' => 10,
+                'default' => 0,
+                'readOnly' => true,
+            ],
+        ],
+        'height' => [
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.height',
+            'config' => [
+                'type' => 'number',
+                'size' => 10,
+                'default' => 0,
+                'readOnly' => true,
+            ],
+        ],
+        'pages' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.pages',
+            'config' => [
+                'type' => 'input',
+                'size' => 30,
+                'eval' => 'trim',
+                'readOnly' => true,
+            ],
+        ],
+        'language' => [
+            'exclude' => true,
+            'l10n_mode' => 'exclude',
+            'l10n_display' => 'defaultAsReadonly',
+            'label' => 'filemetadata.db:sys_file_metadata.language',
+            'config' => [
+                'type' => 'input',
+                'size' => 30,
+                'eval' => 'trim',
+                'max' => 45,
+            ],
+        ],
+    ],
+];
+
+$GLOBALS['TCA']['sys_file_metadata'] = array_replace_recursive($GLOBALS['TCA']['sys_file_metadata'], $tca);

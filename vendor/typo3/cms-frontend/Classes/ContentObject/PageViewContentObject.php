@@ -1,0 +1,175 @@
+<?php
+
+declare(strict_types=1);
+
+/*
+ * This file is part of the TYPO3 CMS project.
+ *
+ * It is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License, either version 2
+ * of the License, or any later version.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ *
+ * The TYPO3 project - inspiring people to share!
+ */
+
+namespace TYPO3\CMS\Frontend\ContentObject;
+
+use TYPO3\CMS\Core\Information\Typo3Information;
+use TYPO3\CMS\Core\Page\PageLayoutResolver;
+use TYPO3\CMS\Core\TypoScript\TypoScriptService;
+use TYPO3\CMS\Core\Utility\PathUtility;
+use TYPO3\CMS\Core\View\ViewFactoryData;
+use TYPO3\CMS\Core\View\ViewFactoryInterface;
+use TYPO3\CMS\Frontend\ContentObject\Exception\ContentRenderingException;
+use TYPO3Fluid\Fluid\View\Exception\InvalidLayoutException;
+use TYPO3Fluid\Fluid\View\Exception\InvalidPartialException;
+use TYPO3Fluid\Fluid\View\Exception\InvalidTemplateResourceException;
+
+/**
+ * PAGEVIEW Content Object.
+ *
+ * Built to render a full page with Fluid, and does the following
+ * - uses the template from the given Page Layout / Backend Layout of the current page in a folder "Pages/Mylayout.html"
+ * - paths are resolved from "paths." configuration
+ * - automatically adds templateRootPaths to the layoutRootPaths and partialRootPaths
+ * - injects pageInformation, site and siteLanguage (= language) as variables by default
+ * - adds all page settings (= TypoScript constants) into the settings variable of the View
+ *
+ * In contrast to FLUIDTEMPLATE, by design this cObject
+ * - does not handle custom layoutRootPaths and partialRootPaths
+ * - does not handle Extbase specialities
+ * - does not handle "templateName.", "template." and "file." resolving from cObject
+ */
+final class PageViewContentObject extends AbstractContentObject
+{
+    private const reservedVariables = ['site', 'language', 'page'];
+
+    public function __construct(
+        private readonly ContentDataProcessor $contentDataProcessor,
+        private readonly TypoScriptService $typoScriptService,
+        private readonly PageLayoutResolver $pageLayoutResolver,
+        private readonly ViewFactoryInterface $viewFactory,
+    ) {}
+
+    /**
+     * Rendering the cObject, PAGEVIEW
+     *
+     * Configuration properties:
+     *  - paths array to template files
+     *  - variables array of cObjects, the keys are the variable names in fluid
+     *  - dataProcessing array of data processors which are classes to manipulate $data
+     *
+     * Example:
+     *   page.10 = PAGEVIEW
+     *   page.10.paths.10 = EXT:site_configuration/Resources/Private/Templates/
+     *   page.10.variables {
+     *     mylabel = TEXT
+     *     mylabel.value = Label from TypoScript
+     *   }
+     *
+     * @param mixed $conf Array of TypoScript properties (marked as "mixed" currently because we don't know what we're receiving)
+     * @return string The HTML output
+     * @throws ContentRenderingException
+     */
+    public function render($conf = []): string
+    {
+        if (!is_array($conf)) {
+            $conf = [];
+        }
+        if (!is_array($conf['paths.'] ?? false) || $conf['paths.'] === []) {
+            throw new ContentRenderingException(
+                'PAGEVIEW content object needs a "paths." TypoScript array',
+                1724601907
+            );
+        }
+        $paths = array_map(PathUtility::sanitizeTrailingSeparator(...), $conf['paths.']);
+        $viewFactoryData = new ViewFactoryData(
+            // @todo: Do discuss: Rename 'paths.' to 'templateRootPaths.' again?
+            templateRootPaths: array_map(static fn(string $path): string => $path . 'Pages/', $paths),
+            // @todo: We should *still* allow setting both partialRootPaths and layoutRootPaths, and only fall back to
+            //        [templateRootPaths]/Partials and [templateRootPaths]/Layouts if not set. And the fallback should be
+            //        advertised as best practice.
+            partialRootPaths: array_map(static fn(string $path): string => $path . 'Partials/', $paths),
+            layoutRootPaths: array_map(static fn(string $path): string => $path . 'Layouts/', $paths),
+            request: $this->request,
+        );
+        $view = $this->viewFactory->create($viewFactoryData);
+
+        $pageSettings = $this->request->getAttribute('frontend.typoscript')->getSettingsTree()->toArray();
+        $view->assign('settings', $this->typoScriptService->convertTypoScriptArrayToPlainArray($pageSettings));
+        $variables = $this->getContentObjectVariables($conf);
+        $variables = $this->contentDataProcessor->process($this->cObj, $conf, $variables);
+        $view->assignMultiple($variables);
+
+        // Fetch the Fluid template by the name of the Page Layout and underneath "Pages"
+        $pageInformationObject = $this->request->getAttribute('frontend.page.information');
+        $pageLayoutName = $this->pageLayoutResolver->getLayoutIdentifierForPageWithoutPrefix(
+            $pageInformationObject->getPageRecord(),
+            $pageInformationObject->getRootLine()
+        );
+        try {
+            return $view->render($pageLayoutName);
+        } catch (InvalidTemplateResourceException $e) {
+            // Only add a PAGEVIEW specific message in case the exception has been thrown for the given template.
+            if ($e instanceof InvalidPartialException || $e instanceof InvalidLayoutException || $e->templateName !== 'Default/' . $pageLayoutName) {
+                throw $e;
+            }
+            throw new InvalidTemplateResourceException(
+                sprintf(
+                    'PAGEVIEW TypoScript object: Failed to resolve a template file for page layout "%s". See also: %s. The following paths were checked: "%s"',
+                    $pageLayoutName,
+                    Typo3Information::getDocsLink('t3tsref:cobj-pageview'),
+                    implode('", "', $e->evaluatedTemplatePaths),
+                ),
+                1742058289,
+                $e,
+                $e->templateName,
+                $e->evaluatedTemplatePaths,
+            );
+        }
+    }
+
+    /**
+     * Compile rendered content objects in variables array ready to assign to the view
+     *
+     * @param array $conf Configuration array
+     * @return array the variables to be assigned
+     */
+    private function getContentObjectVariables(array $conf): array
+    {
+        $pageInformation = $this->request->getAttribute('frontend.page.information');
+        $variables = [
+            'site' => $this->request->getAttribute('site'),
+            'language' => $this->request->getAttribute('language'),
+            'page' => $pageInformation,
+        ];
+        // Accumulate the variables to be process and loop them through cObjGetSingle
+        if (is_array($conf['variables.'] ?? false) && $conf['variables.'] !== []) {
+            foreach ($conf['variables.'] as $variableName => $cObjType) {
+                if (!is_string($cObjType)) {
+                    continue;
+                }
+                if (in_array($variableName, self::reservedVariables, true)) {
+                    throw new \InvalidArgumentException(
+                        'Cannot use reserved name "' . $variableName . '" as variable name in PAGEVIEW.',
+                        1711748615
+                    );
+                }
+                $cObjConf = $conf['variables.'][$variableName . '.'] ?? [];
+                $variables[$variableName] = $this->cObj->cObjGetSingle($cObjType, $cObjConf, 'variables.' . $variableName);
+            }
+        }
+        if (!($conf['contentAs'] ?? false) && isset($variables['content'])) {
+            throw new \InvalidArgumentException(
+                'No variable name ("contentAs" option) for the content areas has been defined in PAGEVIEW, and the fallback name "content" is not available because it has been manually set.',
+                1726475574
+            );
+        }
+
+        $variables[$conf['contentAs'] ?? 'content'] = $pageInformation->getPageLayout()?->getContentAreas()->withRequest($this->request);
+        return $variables;
+    }
+}

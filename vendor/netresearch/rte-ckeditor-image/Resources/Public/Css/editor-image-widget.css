@@ -1,0 +1,106 @@
+/**
+ * CKEditor Image Widget Styles — Click Behavior Indicators
+ *
+ * Visual indicators (zoom/link badges) for images in the CKEditor editing view.
+ *
+ * NOTE: TYPO3's CKEditor 5 integration prefixes all selectors from contentsCss
+ * files with "#<element-id> .ck-content". Since .ck-content IS .ck-editor__editable
+ * (same element), selectors here must NOT include .ck-editor__editable — otherwise
+ * the prefixed selector creates an impossible descendant relationship.
+ *
+ * IMPORTANT: Do NOT add layout-affecting rules (display, margin, position, etc.)
+ * to CKEditor widget elements here. CKEditor manages widget layout internally,
+ * and overriding it via contentsCss breaks cursor placement and editing behavior.
+ * The block image sizing rules that were here previously were always dead code
+ * (broken selectors) and have been intentionally removed.
+ */
+
+/* ========================================
+   Block Image Indicators
+   ======================================== */
+
+/* Ensure figure has relative positioning for indicator placement */
+figure.ck-widget.image {
+    position: relative;
+}
+
+/* Container for indicators - positioned at top-right of image */
+figure.ck-widget.image .ck-image-indicators {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: flex;
+    gap: 4px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+/* Suppress CKEditor's built-in link indicator (::after on figure > a)
+   since we provide our own .ck-image-indicator--link badges.
+   See: CKEditor linkimage.css adds ::after to figure.image > a
+   and span.image-inline > a — without this override, both indicators show.
+   Both broad selectors (figure.image, span.image-inline) and widget-scoped
+   selectors (.ck-widget.image, .ck-widget_inline-image) are needed because
+   CKEditor's own linkimage.css uses the broad forms (#687). */
+figure.image > a::after,
+figure.ck-widget.image > a::after,
+span.image-inline > a::after,
+span.ck-widget.ck-widget_inline-image > a::after {
+    display: none !important;
+}
+
+/* ========================================
+   Shared Indicator Styles
+   ======================================== */
+
+/* Base indicator badge */
+.ck-image-indicator {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.6);
+    color: #fff;
+    font-size: 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Link indicator - chain link icon */
+.ck-image-indicator--link::before {
+    content: "\1F517";
+    font-size: 12px;
+}
+
+/* Zoom/enlarge indicator - magnifying glass icon */
+.ck-image-indicator--zoom::before {
+    content: "\1F50D";
+    font-size: 12px;
+}
+
+/* Hover effect */
+figure.ck-widget.image:hover .ck-image-indicator {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* ========================================
+   Inline Image Indicators
+   NOTE: position:relative is set via inline style in the JS downcast
+   converter only when indicators are present, to avoid breaking
+   CKEditor's cursor placement on inline widgets without indicators.
+   ======================================== */
+
+.ck-widget_inline-image .ck-image-indicators {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    display: flex;
+    gap: 4px;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.ck-widget_inline-image:hover .ck-image-indicator {
+    background: rgba(0, 0, 0, 0.8);
+}
