@@ -81,3 +81,26 @@ Class "TYPO3\ClassAliasLoader\IncludeFile\CaseSensitiveToken" not found
 ```
 
 **Fix:** Run `composer dump-autoload` before retrying the update.
+
+## 7. SMTP `transport_smtp_encrypt` Must Be Boolean
+
+**Symptom:** Contact form submissions failed with `stream_socket_enable_crypto(): SSL operation failed` and `wrong version number` errors.
+
+**Cause:** `transport_smtp_encrypt` was set to `'starttls'` (a string). Since TYPO3 v10.4 (changelog #91070), this setting is a **boolean**: `false` = auto-negotiate STARTTLS (port 587), `true` = implicit SSL (port 465). The string `'starttls'` is truthy in PHP, so it was treated as `true`, causing Symfony Mailer to open an `ssl://` connection on port 587 — which Gmail rejects.
+
+**Fix:** Set `transport_smtp_encrypt` to `false` (boolean, no quotes) in `config/system/settings.php`:
+
+```php
+'transport_smtp_encrypt' => false,
+'transport_smtp_server' => 'smtp.gmail.com:587',
+```
+
+**Lesson:** Always use `false` for STARTTLS on port 587 and `true` for implicit SSL on port 465. Never use string values.
+
+## 8. Gmail Deduplicates Emails When Sender Equals Recipient
+
+**Symptom:** Contact form emails appeared in Gmail's Sent folder but never arrived in the Inbox. Not in spam either.
+
+**Cause:** The SMTP sender account (`eduardocfrankr@gmail.com`) was also the final recipient — `info@eduardofrank.co` was forwarded back to the same Gmail via Cloudflare Email Routing. Gmail deduplicates by message-id: if the sending account and receiving account are the same, the message only appears in Sent.
+
+**Fix:** Forward `info@eduardofrank.co` to a different email address than the one used for SMTP sending. Alternatively, use a different Gmail account as the SMTP sender.
