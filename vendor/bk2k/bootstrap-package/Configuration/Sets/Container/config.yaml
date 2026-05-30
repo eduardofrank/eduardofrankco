@@ -1,5 +1,0 @@
-name: bootstrap-package/container
-label: 'Bootstrap Package: Container'
-hidden: true
-dependencies:
-  - bootstrap-package/content-elements

@@ -1,8 +1,0 @@
-# HELPER
-@import 'TypoScript/Helper/Block.typoscript'
-@import 'TypoScript/Helper/PageClass.typoscript'
-
-# GENERAL
-@import 'TypoScript/General/page.typoscript'
-@import 'TypoScript/General/plugin.typoscript'
-@import 'TypoScript/General/config.typoscript'

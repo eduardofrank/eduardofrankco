@@ -1,9 +1,0 @@
-name: netresearch/rte-ckeditor-image
-label: 'CKEditor Image Support'
-# Optional dependencies: ensures our TypoScript loads AFTER these packages
-# if they're present, but doesn't require them if users have custom rendering
-optionalDependencies:
-  - typo3/fluid-styled-content
-  # Bootstrap Package site set names (not composer package name)
-  - bootstrap-package/content-elements
-  - bootstrap-package/full

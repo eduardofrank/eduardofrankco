@@ -1,7 +1,0 @@
-TCEFORM {
-    pages {
-        layout {
-            removeItems = 1,2,3
-        }
-    }
-}

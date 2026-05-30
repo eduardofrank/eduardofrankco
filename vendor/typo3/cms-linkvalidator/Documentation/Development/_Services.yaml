@@ -1,5 +1,0 @@
-# Other definitions
-
-MyVendor\MyExtension\Linktype\MyCustomLinktype:
-  tags:
-    - name: linkvalidator.linktype
