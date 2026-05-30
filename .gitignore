@@ -1,6 +1,7 @@
 /vendor/
 /var/
 /public/_assets/
+/public/_assets_install/
 /public/typo3/
 /public/typo3conf/ext/
 /public/typo3temp/

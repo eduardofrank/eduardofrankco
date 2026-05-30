@@ -1,4 +1,6 @@
 base: '%env(TYPO3_BASE_URL)%'
+dependencies:
+  - eduardo-frank/efrank14
 errorHandling:
   -
     errorCode: 404
@@ -41,5 +43,3 @@ languages:
     languageId: 2
 rootPageId: 1
 websiteTitle: 'Eduardo Frank - TYPO3 Blog'
-dependencies:
-  - eduardo-frank/efrank13

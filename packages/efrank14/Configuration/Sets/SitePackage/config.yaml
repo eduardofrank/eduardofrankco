@@ -1,0 +1,8 @@
+name: eduardo-frank/efrank14
+label: 'efrank14'
+dependencies:
+  - bootstrap-package/full
+  - blog/integration
+  - codingms/parsedown-extra-stylesheet
+  - codingms/parsedown-extra-colorbox
+  - netresearch/rte-ckeditor-image

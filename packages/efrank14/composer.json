@@ -1,0 +1,32 @@
+{
+    "name": "eduardo-frank/efrank14",
+    "type": "typo3-cms-extension",
+    "description": "",
+    "homepage": "https://eduardofrank.co",
+    "license": ["GPL-2.0-or-later"],
+    "keywords": ["TYPO3 CMS"],
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Eduardo Frank",
+            "email": "edfrank@gmail.com",
+            "homepage": "https://eduardofrank.co"
+        }
+    ],
+    "require": {
+        "bk2k/bootstrap-package": "^16.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "EduardoFrank\\Efrank14\\": "Classes/"
+        }
+    },
+    "extra": {
+        "typo3/cms": {
+            "extension-key": "efrank14",
+            "Package": {
+                "providesPackages": {}
+            }
+        }
+    }
+}
