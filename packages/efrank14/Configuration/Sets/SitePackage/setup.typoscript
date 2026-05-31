@@ -56,8 +56,10 @@ plugin.tx_blog.settings.sidebarWidgets.50 >
 plugin.tx_blog.settings.sidebarWidgets.60 >
 
 #### FORM CONFIGURATION ####
-plugin.tx_form.settings.yamlConfigurations.200 = EXT:efrank14/Configuration/Yaml/CustomFormSetup.yaml
-module.tx_form.settings.yamlConfigurations.200 = EXT:efrank14/Configuration/Yaml/CustomFormSetup.yaml
+# Form YAML config is now auto-discovered from
+# Configuration/Form/EfrankForms/config.yaml (TYPO3 v14.2+).
+# The deprecated plugin.tx_form/module.tx_form yamlConfigurations
+# registration was removed.
 
 #### FAVICON HEADER DATA ####
 page {
