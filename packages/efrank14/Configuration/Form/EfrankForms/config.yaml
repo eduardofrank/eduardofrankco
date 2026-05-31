@@ -1,0 +1,25 @@
+# Auto-discovered EXT:form configuration (TYPO3 v14.2+).
+# Replaces the deprecated TypoScript registration of
+# Configuration/Yaml/CustomFormSetup.yaml via
+# plugin.tx_form / module.tx_form .settings.yamlConfigurations.
+# See Feature-109412-FormYamlAutoDiscovery.
+name: eduardo-frank/efrank14-forms
+label: 'efrank14 Form Configuration'
+# Loaded after the core base set (typo3/form-base, priority 10).
+priority: 200
+
+persistenceManager:
+  allowSaveToExtensionPaths: true
+  allowDeleteFromExtensionPaths: true
+  allowedExtensionPaths:
+    200: 'EXT:efrank14/Resources/Private/Forms/'
+
+prototypes:
+  standard:
+    formElementsDefinition:
+      Form:
+        renderingOptions:
+          translation:
+            translationFiles:
+              10: 'EXT:form/Resources/Private/Language/locallang.xlf'
+              20: 'EXT:efrank14/Resources/Private/Language/locallang.xlf'
