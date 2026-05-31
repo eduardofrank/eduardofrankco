@@ -97,6 +97,8 @@ Class "TYPO3\ClassAliasLoader\IncludeFile\CaseSensitiveToken" not found
 
 **Lesson:** Always use `false` for STARTTLS on port 587 and `true` for implicit SSL on port 465. Never use string values.
 
+**Note:** `config/system/settings.php` is typically gitignored, so this setting is environment-specific — apply it directly on each environment; it does **not** deploy via `git pull`. See #12.
+
 ## 8. Gmail Deduplicates Emails When Sender Equals Recipient
 
 **Symptom:** Contact form emails appeared in Gmail's Sent folder but never arrived in the Inbox. Not in spam either.
@@ -159,3 +161,33 @@ Then delete `Configuration/Yaml/CustomFormSetup.yaml`, remove the two `yamlConfi
 - Removed the now-unused `packages/efrank13` v13 package (nothing referenced it: composer, config, vendor, or DB).
 
 **Lesson:** Always confirm a commit actually contains every intended change (`git show --stat <sha>`) before chasing deeper causes. Keep the site package single-source-tracked. For TypoScript/form-config fixes, clear the compiled TypoScript cache (`var/cache/code/typoscript/*.php`), not just a generic flush.
+
+## 11. Form Definition Storage: fileadmin vs Package (and v14.2 File-Storage Deprecation)
+
+*(Not triggered on this site — its forms are package-based — but a v14-relevant gotcha worth checking on any site, especially when a "form fix" appears not to take effect.)*
+
+**Symptom:** A change to the package's `*.form.yaml` has no effect on the live form; or a form references an extension/path that no longer exists.
+
+**Cause:** Which form definition a content element loads is stored in **`tt_content.pi_flexform`** (`settings.persistenceIdentifier`), not in the package — a deploy never changes it. Two storage backends are common:
+- **Extension storage** — `EXT:my_package/Resources/Private/Forms/foo.form.yaml` (version-controlled, deployed).
+- **fileadmin storage** — `1:/form_definitions/foo.form.yaml`. `public/fileadmin/` is typically gitignored, so this file is **not in the repo and not deployed**; it can drift from the package copy (different fields/finishers), and editing the package form does nothing while the element still points at the fileadmin file.
+
+Also watch for multiple `form_formframework` elements on one page — `deleted=1` ones with dead `EXT:old_package/...` references are red herrings.
+
+**Fix / check:**
+```sql
+SELECT uid, pid, deleted, hidden,
+  EXTRACTVALUE(pi_flexform,'//field[@index="settings.persistenceIdentifier"]/value') AS form
+FROM tt_content WHERE CType='form_formframework' ORDER BY pid, uid;
+```
+Re-select the package form on the element in the backend, or apply the change to the fileadmin file directly.
+
+**v14.2 note:** the **file-based form storage adapter** is deprecated (Deprecation #108653). Migrate fileadmin forms to **extension** or **database** storage so the definition is version-controlled and deployable.
+
+## 12. Mail/Form Bugs Don't Reproduce on DDEV; SMTP Config Is Environment-Specific
+
+**Symptom:** A contact form works perfectly in local DDEV but fails — or the email never arrives — only on production.
+
+**Cause:** DDEV routes outbound mail to **mailpit** (a local catch-all), so real SMTP delivery, DNS resolution of the mail host, and provider quirks never exercise locally. Also, `config/system/settings.php` — where `transport_smtp_*` lives — is typically **gitignored**, so SMTP settings are per-environment and are NOT carried by `git pull`.
+
+**Fix / approach:** Test the real **POST** on a staging/production environment, not just locally. Apply SMTP settings directly in each environment's `settings.php`. See #7 (boolean `transport_smtp_encrypt`) and #8 (Gmail dedup) for delivery specifics. Note: an **unresolvable SMTP host** throws an uncaught `Symfony\Component\Mailer\Exception\TransportException`, which surfaces as a **503 on submit** (GET still 200) — verify the host actually resolves and matches the domain's real mail provider.

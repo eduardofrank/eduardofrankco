@@ -27,9 +27,18 @@ Verify all extensions have v14-compatible releases before upgrading. Key package
 ddev export-db --gzip=false --file=/path/to/pre-v14-backup.sql
 ```
 
-Do not delete this backup until the upgrade is fully stable and deployed to production.
+Do not delete this backup until the upgrade is fully stable and deployed to production. (When a rename/migration is involved, keep it indefinitely — a "cleanup" delete has caused real data loss.)
 
-## 3. Site Package Migration
+## 3. Pre-Upgrade Deprecation Scan
+
+Before touching constraints, find deprecated/removed API usage in your own code and extensions so you can fix it on v13 first (code that is deprecated-but-present in v13 is frequently *removed* in v14).
+
+- **Extension Scanner** — Admin Tools → Upgrade → "Scan Extension Files". Flags uses of deprecated/removed core API (e.g. `$GLOBALS['TSFE']`) in your site package and third-party extensions. "Strong" matches are almost always real; "weak" matches need a manual look.
+- **Deprecation log** — run the site and watch `var/log/typo3_deprecations_*.log` for runtime notices (deprecated APIs, FlexForm on-the-fly migrations, TypoScript).
+- **Upgrade wizard list** — `vendor/bin/typo3 upgrade:list` shows which database/structure wizards will need to run.
+- **Reports / lowlevel** — the Reports module and System → Configuration help spot misconfiguration before and after the jump.
+
+## 4. Site Package Migration
 
 If your site package targets Bootstrap Package, create a new package for v16 compatibility. Key changes:
 
@@ -38,7 +47,7 @@ If your site package targets Bootstrap Package, create a new package for v16 com
 - Update all `EXT:old_package` references to `EXT:new_package`
 - Update `Configuration/Sets/SitePackage/config.yaml` dependencies
 
-## 4. Bootstrap Package v16 Breaking Changes
+## 5. Bootstrap Package v16 Breaking Changes
 
 ### Classic TypoScript Removed
 
@@ -54,7 +63,7 @@ If your `sys_template` record has `clear = 3` (clear constants + setup), it will
 
 **Fix:** Set `clear = 0` on the root `sys_template` record when using Site Sets.
 
-## 5. Remove `typo3/cms-fluid-styled-content`
+## 6. Remove `typo3/cms-fluid-styled-content`
 
 When using Bootstrap Package v16, **remove `typo3/cms-fluid-styled-content` from `composer.json`**.
 
@@ -79,7 +88,7 @@ composer remove typo3/cms-fluid-styled-content
 
 Also remove `typo3/fluid-styled-content` and `typo3/fluid-styled-content-css` from your site configuration's `dependencies` in `config/sites/*/config.yaml`.
 
-## 6. Site Configuration Dependencies
+## 7. Site Configuration Dependencies
 
 With Site Sets, the site configuration (`config/sites/*/config.yaml`) should list only your site package as a dependency. Your site package's own `config.yaml` pulls in everything else through its dependency chain.
 
@@ -101,7 +110,7 @@ dependencies:
 
 Do **not** list `typo3/fluid-styled-content` as a dependency.
 
-## 7. `$GLOBALS['TSFE']` Removed
+## 8. `$GLOBALS['TSFE']` Removed
 
 `TypoScriptFrontendController` (`$GLOBALS['TSFE']`) has been completely removed in TYPO3 v14. Code that accesses `$GLOBALS['TSFE']->page`, `$GLOBALS['TSFE']->id`, etc. will silently return `null`.
 
@@ -126,7 +135,7 @@ page.10.templateName = BlogPost
 
 Where doktype 137 = Blog Post and 138 = Blog Page.
 
-## 8. `external` Property Removed
+## 9. `external` Property Removed
 
 The `external` property on TypoScript asset includes (CSS/JS) has been removed in v14. Absolute `https://` URLs are now auto-detected.
 
@@ -139,7 +148,49 @@ page.includeJSFooter.mermaid.external = 1
 page.includeJSFooter.mermaid = https://cdn.example.com/lib.js
 ```
 
-## 9. Update `composer.json`
+## 10. ext:form — Migrate Custom Form YAML to Auto-Discovery (v14.2)
+
+TYPO3 **v14.2 (#109412)** deprecated TypoScript registration of custom form YAML —
+`plugin.tx_form.settings.yamlConfigurations` and `module.tx_form.settings.yamlConfigurations` —
+in favour of **auto-discovery**. If you don't migrate, the backend stops loading
+`persistenceManager.allowedExtensionPaths`, so the form plugin shows **"no read access"**
+(and a 503 once the referenced YAML file is removed). See Issues Log #9.
+
+**Migrate:** create `packages/<site-package>/Configuration/Form/<SetName>/config.yaml` with the
+metadata keys plus the form config at the **top level** (drop the old `TYPO3.CMS.Form` wrapper):
+
+```yaml
+name: my-vendor/my-forms
+label: 'My Form Configuration'
+priority: 200            # core base set is priority 10
+persistenceManager:
+  allowSaveToExtensionPaths: true
+  allowDeleteFromExtensionPaths: true
+  allowedExtensionPaths:
+    200: 'EXT:my_package/Resources/Private/Forms/'
+prototypes:
+  standard:
+    formElementsDefinition:
+      Form:
+        renderingOptions:
+          translation:
+            translationFiles:
+              10: 'EXT:form/Resources/Private/Language/locallang.xlf'
+              20: 'EXT:my_package/Resources/Private/Language/locallang.xlf'
+```
+
+Then delete the old `Configuration/Yaml/*.yaml` and remove the `yamlConfigurations` lines from
+`setup.typoscript`. The config is auto-loaded for **both** frontend and backend. Verify with
+`TYPO3\CMS\Form\Mvc\Configuration\FormYamlCollector::getAllConfigurations()` or in
+System → Configuration → "Form: YAML Configuration".
+
+**Also (v14.2):** the **file-based form storage adapter** (form definitions stored under
+`1:/form_definitions/` in fileadmin) is deprecated. Prefer **extension storage**
+(`EXT:my_package/Resources/Private/Forms/`, version-controlled) or **database storage**.
+`public/fileadmin/` is commonly gitignored, so fileadmin-stored forms aren't deployed and drift
+between environments — another reason to move them into the package.
+
+## 11. Update `composer.json`
 
 ```bash
 # Update core packages
@@ -161,7 +212,7 @@ Class "TYPO3\ClassAliasLoader\IncludeFile\CaseSensitiveToken" not found
 ```
 Run `composer dump-autoload` and retry.
 
-## 10. Run Upgrade Wizards
+## 12. Run Upgrade Wizards
 
 ```bash
 vendor/bin/typo3 upgrade:run
@@ -169,7 +220,7 @@ vendor/bin/typo3 extension:setup
 vendor/bin/typo3 cache:flush
 ```
 
-## 11. Database Reference Updates
+## 13. Database Reference Updates
 
 If you switched site packages (renamed the extension), update stored references in the database:
 
@@ -185,7 +236,12 @@ UPDATE pages SET TSconfig = REPLACE(TSconfig, 'old_package', 'new_package')
   WHERE TSconfig LIKE '%old_package%';
 ```
 
-## 12. Verification Checklist
+Search broadly — any text/blob column can hold an `EXT:` path. Note that the **form plugin
+stores which form an element loads in `tt_content.pi_flexform`** (`settings.persistenceIdentifier`),
+not in the package, so a deploy never changes it; fix it in the DB or by re-selecting the form
+in the backend.
+
+## 14. Verification Checklist
 
 After upgrading, verify:
 
@@ -195,14 +251,15 @@ After upgrading, verify:
 - [ ] Blog list and single post views render with sidebar
 - [ ] Mermaid or other JS-rendered content works
 - [ ] CKEditor with image insertion works in backend
-- [ ] Contact/other forms submit correctly
+- [ ] Contact/other forms submit correctly — test the actual **POST**, not just that the page loads. DDEV routes mail to **mailpit**, so SMTP/mail failures will not reproduce locally; verify on a real environment.
+- [ ] Form definitions load: System → Configuration → "Form: YAML Configuration" lists your set, and the backend form plugin shows the form (no "no read access")
 - [ ] Backend dashboard and custom widgets load
 - [ ] Dark/light theme applied correctly
 - [ ] Breadcrumbs display correctly
 - [ ] 404 error page works
 - [ ] No PHP errors in `var/log/`
 
-## 13. Deployment
+## 15. Deployment
 
 Standard deployment process:
 
@@ -210,5 +267,12 @@ Standard deployment process:
 2. Push to remote
 3. On production: `git pull && composer install --no-dev`
 4. Run database updates: `vendor/bin/typo3 upgrade:run`
-5. Update DB references (Section 11) if site package was renamed
+5. Update DB references (Section 13) if site package was renamed
 6. Flush caches: `vendor/bin/typo3 cache:flush`
+
+Deployment gotchas worth checking (see TYPO3-v14-Upgrade-Issues-Log.md #10):
+
+- **Know your site-package model.** If the package is *plain files* in the main repo, a plain `git pull` updates it. If it's a *git submodule*, also run `git submodule update` — a `git pull` only moves the submodule pointer, leaving the package files on the old commit.
+- **Clear the compiled TypoScript** for any TypoScript / YAML / form change: `rm -f var/cache/code/typoscript/*.php` then `cache:flush`. A generic flush does not stick if an on-disk source is still wrong — every page load regenerates the compiled TypoScript from it.
+- **Verify the deploy actually landed.** Use `git show --stat <sha>` to confirm the commit contains every intended file (a partial `git add` can silently omit one), and `grep` the changed file on the server to confirm it updated.
+- **Gitignored, env-specific files don't deploy.** `config/system/settings.php` (SMTP/secrets) and `public/fileadmin/` are typically gitignored — apply changes such as SMTP settings directly on each environment.
