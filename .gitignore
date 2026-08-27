@@ -18,3 +18,4 @@
 node_modules/
 config/system/settings.php
 .DS_Store
+.claude/settings.local.json
